@@ -18,9 +18,19 @@ const AttendanceTable = () => {
   const [students, setStudents] = useState<Student[]>(() => {
     const saved = localStorage.getItem('students');
     return saved ? JSON.parse(saved) : [
-      { id: '1', name: 'John Doe' },
-      { id: '2', name: 'Jane Smith' },
-      { id: '3', name: 'Bob Johnson' },
+      { id: '1', name: 'Агапова Марина' },
+      { id: '2', name: 'Айвазян Жозефина' },
+      { id: '3', name: 'Афатова Виктория' },
+      { id: '4', name: 'Баранова Карина' },
+      { id: '5', name: 'Булгина Варвара' },
+      { id: '6', name: 'Булыгин Роман' },
+      { id: '7', name: 'Гонтарюк Анастасия' },
+      { id: '8', name: 'Дианова Карина' },
+      { id: '9', name: 'Илясова Ирина' },
+      { id: '10', name: 'Кабиров Абубакр' },
+      { id: '11', name: 'Карпова Полина' },
+      { id: '12', name: 'Медведев Данила' },
+      { id: '13', name: 'Мелихова Евгения' },
     ];
   });
 
