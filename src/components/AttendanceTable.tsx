@@ -112,7 +112,7 @@ const AttendanceTable = () => {
       <div className="min-w-[800px]">
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-4">
-            <h2 className="text-2xl font-bold text-slate-800">Attendance Sheet</h2>
+            <h2 className="text-2xl font-bold text-slate-800">Посещаемость 0941</h2>
             <Select
               value={selectedMonth}
               onValueChange={(value) => setSelectedMonth(value)}
