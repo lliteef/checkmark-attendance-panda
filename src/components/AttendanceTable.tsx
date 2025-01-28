@@ -163,7 +163,7 @@ const AttendanceTable = () => {
             <thead>
               <tr className="bg-gray-50">
                 <th className="border-b px-6 py-3 text-left text-sm font-semibold text-slate-800 sticky left-0 bg-gray-50 z-10">
-                  Student Name
+                  Фамилия Имя
                 </th>
                 {dates.map(date => (
                   <th key={date} className="border-b px-6 py-3 text-center text-sm font-semibold text-slate-800">
