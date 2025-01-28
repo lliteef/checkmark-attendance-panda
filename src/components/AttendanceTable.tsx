@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
 interface Student {
@@ -28,12 +29,45 @@ const AttendanceTable = () => {
     return saved ? JSON.parse(saved) : {};
   });
 
-  // Generate dates for the last 7 days
-  const dates = Array.from({ length: 7 }, (_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    return date.toISOString().split('T')[0];
-  }).reverse();
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+  });
+
+  // Generate dates for the selected month
+  const getDatesForMonth = (monthStr: string) => {
+    const [year, month] = monthStr.split('-').map(Number);
+    const date = new Date(year, month - 1, 1);
+    const dates: string[] = [];
+    
+    while (date.getMonth() === month - 1) {
+      dates.push(date.toISOString().split('T')[0]);
+      date.setDate(date.getDate() + 1);
+    }
+    
+    return dates;
+  };
+
+  const dates = getDatesForMonth(selectedMonth);
+
+  // Generate last 12 months for dropdown
+  const getLastTwelveMonths = () => {
+    const months = [];
+    const today = new Date();
+    
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const monthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      months.push({
+        value: monthStr,
+        label: date.toLocaleString('default', { month: 'long', year: 'numeric' })
+      });
+    }
+    
+    return months;
+  };
+
+  const months = getLastTwelveMonths();
 
   useEffect(() => {
     localStorage.setItem('students', JSON.stringify(students));
@@ -77,7 +111,24 @@ const AttendanceTable = () => {
     <div className="w-full overflow-x-auto">
       <div className="min-w-[800px]">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-slate-800">Attendance Sheet</h2>
+          <div className="flex items-center gap-4">
+            <h2 className="text-2xl font-bold text-slate-800">Attendance Sheet</h2>
+            <Select
+              value={selectedMonth}
+              onValueChange={(value) => setSelectedMonth(value)}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Select month" />
+              </SelectTrigger>
+              <SelectContent>
+                {months.map((month) => (
+                  <SelectItem key={month.value} value={month.value}>
+                    {month.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <button
             onClick={addStudent}
             className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
@@ -89,12 +140,12 @@ const AttendanceTable = () => {
           <table className="w-full border-collapse bg-white">
             <thead>
               <tr className="bg-gray-50">
-                <th className="border-b px-6 py-3 text-left text-sm font-semibold text-slate-800">
+                <th className="border-b px-6 py-3 text-left text-sm font-semibold text-slate-800 sticky left-0 bg-gray-50 z-10">
                   Student Name
                 </th>
                 {dates.map(date => (
                   <th key={date} className="border-b px-6 py-3 text-center text-sm font-semibold text-slate-800">
-                    {new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    {new Date(date).toLocaleDateString('en-US', { day: 'numeric' })}
                   </th>
                 ))}
                 <th className="border-b px-6 py-3 text-center text-sm font-semibold text-slate-800">
@@ -105,7 +156,7 @@ const AttendanceTable = () => {
             <tbody>
               {students.map(student => (
                 <tr key={student.id} className="hover:bg-gray-50">
-                  <td className="border-b px-6 py-4 text-sm text-slate-800">
+                  <td className="border-b px-6 py-4 text-sm text-slate-800 sticky left-0 bg-white z-10">
                     {student.name}
                   </td>
                   {dates.map(date => (
