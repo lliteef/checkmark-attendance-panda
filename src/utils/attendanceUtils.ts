@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import * as XLSX from 'xlsx';
 
 export type ViewType = "day" | "week" | "month";
 
@@ -50,7 +50,23 @@ export const getLastTwelveMonths = () => {
 };
 
 export const exportToExcel = (students: any[], dates: string[], attendance: any) => {
-  // This is a placeholder for now - we'll implement the actual export functionality
-  // in the next iteration when we add the required dependencies
-  console.log("Export to Excel functionality coming soon");
+  // Create workbook and worksheet
+  const wb = XLSX.utils.book_new();
+  
+  // Prepare data for export
+  const data = [
+    ['Student Name', ...dates.map(date => new Date(date).toLocaleDateString())],
+    ...students.map(student => [
+      student.name,
+      ...dates.map(date => attendance[student.id]?.[date] ? '✓' : '')
+    ])
+  ];
+  
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  
+  // Add worksheet to workbook
+  XLSX.utils.book_append_sheet(wb, ws, 'Attendance');
+  
+  // Save file
+  XLSX.writeFile(wb, `attendance_${new Date().toISOString().split('T')[0]}.xlsx`);
 };
