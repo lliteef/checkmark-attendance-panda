@@ -23,7 +23,7 @@ export const getDatesForView = (viewType: ViewType, selectedMonth: string): stri
     }
     
     case "month": {
-      const date = new Date(2024, month - 1, 1); // Force 2024 as the year
+      const date = new Date(2025, month - 1, 1); // Changed to 2025
       while (date.getMonth() === month - 1) {
         dates.push(date.toISOString().split('T')[0]);
         date.setDate(date.getDate() + 1);
@@ -35,7 +35,7 @@ export const getDatesForView = (viewType: ViewType, selectedMonth: string): stri
 
 export const getLastTwelveMonths = () => {
   const months = [];
-  const today = new Date(2024, new Date().getMonth(), 1); // Force 2024
+  const today = new Date(2025, new Date().getMonth(), 1); // Force 2025
   
   for (let i = 0; i < 12; i++) {
     const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
