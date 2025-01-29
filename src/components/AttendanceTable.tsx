@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { ViewType, getDatesForView, getLastTwelveMonths, exportToExcel } from "@/utils/attendanceUtils";
 
 interface Student {
   id: string;
@@ -51,44 +53,13 @@ const AttendanceTable = () => {
     return saved ? JSON.parse(saved) : {};
   });
 
+  const [viewType, setViewType] = useState<ViewType>("day");
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const today = new Date();
-    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    return `2024-${String(today.getMonth() + 1).padStart(2, '0')}`;
   });
 
-  // Generate dates for the selected month
-  const getDatesForMonth = (monthStr: string) => {
-    const [year, month] = monthStr.split('-').map(Number);
-    const date = new Date(year, month - 1, 1);
-    const dates: string[] = [];
-    
-    while (date.getMonth() === month - 1) {
-      dates.push(date.toISOString().split('T')[0]);
-      date.setDate(date.getDate() + 1);
-    }
-    
-    return dates;
-  };
-
-  const dates = getDatesForMonth(selectedMonth);
-
-  // Generate last 12 months for dropdown
-  const getLastTwelveMonths = () => {
-    const months = [];
-    const today = new Date();
-    
-    for (let i = 0; i < 12; i++) {
-      const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
-      const monthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      months.push({
-        value: monthStr,
-        label: date.toLocaleString('default', { month: 'long', year: 'numeric' })
-      });
-    }
-    
-    return months;
-  };
-
+  const dates = getDatesForView(viewType, selectedMonth);
   const months = getLastTwelveMonths();
 
   useEffect(() => {
@@ -129,12 +100,30 @@ const AttendanceTable = () => {
     toast.success('Student removed successfully');
   };
 
+  const handleExport = () => {
+    exportToExcel(students, dates, attendance);
+    toast.success("Export feature coming soon!");
+  };
+
   return (
     <div className="w-full overflow-x-auto">
       <div className="min-w-[800px]">
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-4">
             <h2 className="text-2xl font-bold text-slate-800">Посещаемость 0941</h2>
+            <Select
+              value={viewType}
+              onValueChange={(value: ViewType) => setViewType(value)}
+            >
+              <SelectTrigger className="w-[120px]">
+                <SelectValue placeholder="View type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="day">Day</SelectItem>
+                <SelectItem value="week">Week</SelectItem>
+                <SelectItem value="month">Month</SelectItem>
+              </SelectContent>
+            </Select>
             <Select
               value={selectedMonth}
               onValueChange={(value) => setSelectedMonth(value)}
@@ -150,64 +139,64 @@ const AttendanceTable = () => {
                 ))}
               </SelectContent>
             </Select>
+            <Button
+              variant="outline"
+              onClick={handleExport}
+            >
+              Export to Excel
+            </Button>
           </div>
-          {/* Commented out Add Student button
-          <button
-            onClick={addStudent}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-          >
-            Add Student
-          </button>
-          */}
         </div>
         <div className="border rounded-lg overflow-hidden">
-          <table className="w-full border-collapse bg-white">
-            <thead>
-              <tr className="bg-gray-50">
-                <th className="border-b px-6 py-3 text-left text-sm font-semibold text-slate-800 sticky left-0 bg-gray-50 z-10">
-                  Фамилия Имя
-                </th>
-                {dates.map(date => (
-                  <th key={date} className="border-b px-6 py-3 text-center text-sm font-semibold text-slate-800">
-                    {new Date(date).toLocaleDateString('en-US', { day: 'numeric' })}
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse bg-white">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="border-b px-6 py-3 text-left text-sm font-semibold text-slate-800 sticky left-0 bg-gray-50 z-10">
+                    Фамилия Имя
                   </th>
-                ))}
-                <th className="border-b px-6 py-3 text-center text-sm font-semibold text-slate-800">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {students.map(student => (
-                <tr key={student.id} className="hover:bg-gray-50">
-                  <td className="border-b px-6 py-4 text-sm text-slate-800 sticky left-0 bg-white z-10">
-                    {student.name}
-                  </td>
                   {dates.map(date => (
-                    <td key={date} className="border-b px-6 py-4 text-center">
-                      <div className="flex justify-center">
-                        <Checkbox
-                          checked={attendance[student.id]?.[date] || false}
-                          onCheckedChange={(checked) => 
-                            handleAttendanceChange(student.id, date, checked as boolean)
-                          }
-                          className="data-[state=checked]:animate-checkbox-check"
-                        />
-                      </div>
-                    </td>
+                    <th key={date} className="border-b px-6 py-3 text-center text-sm font-semibold text-slate-800">
+                      {new Date(date).toLocaleDateString('en-US', { day: 'numeric' })}
+                    </th>
                   ))}
-                  <td className="border-b px-6 py-4 text-center">
-                    <button
-                      onClick={() => removeStudent(student.id)}
-                      className="text-red-500 hover:text-red-700 transition-colors"
-                    >
-                      Remove
-                    </button>
-                  </td>
+                  <th className="border-b px-6 py-3 text-center text-sm font-semibold text-slate-800">
+                    Actions
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {students.map(student => (
+                  <tr key={student.id} className="hover:bg-gray-50">
+                    <td className="border-b px-6 py-4 text-sm text-slate-800 sticky left-0 bg-white z-10">
+                      {student.name}
+                    </td>
+                    {dates.map(date => (
+                      <td key={date} className="border-b px-6 py-4 text-center">
+                        <div className="flex justify-center">
+                          <Checkbox
+                            checked={attendance[student.id]?.[date] || false}
+                            onCheckedChange={(checked) => 
+                              handleAttendanceChange(student.id, date, checked as boolean)
+                            }
+                            className="data-[state=checked]:animate-checkbox-check"
+                          />
+                        </div>
+                      </td>
+                    ))}
+                    <td className="border-b px-6 py-4 text-center">
+                      <button
+                        onClick={() => removeStudent(student.id)}
+                        className="text-red-500 hover:text-red-700 transition-colors"
+                      >
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
