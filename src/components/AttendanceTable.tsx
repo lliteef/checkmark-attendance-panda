@@ -151,12 +151,14 @@ const AttendanceTable = () => {
               </SelectContent>
             </Select>
           </div>
-          //<button
-           // onClick={addStudent}
-            //className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-          //>
-           // Add Student
-          //</button>
+          {/* Commented out Add Student button
+          <button
+            onClick={addStudent}
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+          >
+            Add Student
+          </button>
+          */}
         </div>
         <div className="border rounded-lg overflow-hidden">
           <table className="w-full border-collapse bg-white">
