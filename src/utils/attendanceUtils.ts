@@ -13,7 +13,11 @@ export const getDatesForView = (viewType: ViewType, selectedMonth: string): stri
     
     case "week": {
       const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() - today.getDay()); // Start from Sunday
+      // Adjust to start from Monday (1) instead of Sunday (0)
+      const currentDay = today.getDay();
+      const diff = currentDay === 0 ? -6 : 1 - currentDay; // If Sunday, go back 6 days, else adjust to previous Monday
+      startOfWeek.setDate(today.getDate() + diff);
+      
       for (let i = 0; i < 7; i++) {
         const date = new Date(startOfWeek);
         date.setDate(startOfWeek.getDate() + i);
@@ -23,7 +27,8 @@ export const getDatesForView = (viewType: ViewType, selectedMonth: string): stri
     }
     
     case "month": {
-      const date = new Date(2025, month - 1, 1); // Changed to 2025
+      // Always start from the first day of the selected month
+      const date = new Date(year, month - 1, 1);
       while (date.getMonth() === month - 1) {
         dates.push(date.toISOString().split('T')[0]);
         date.setDate(date.getDate() + 1);
