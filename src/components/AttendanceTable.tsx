@@ -44,16 +44,16 @@ const AttendanceTable = () => {
   }, [students, attendance, dates, viewType]);
 
   return (
-    <div className="w-full overflow-x-auto">
-      <div className="min-w-[800px]">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-4">
-            <h2 className="text-2xl font-bold text-slate-800">Посещаемость 0941</h2>
+    <div className="w-full">
+      <div className="min-w-[320px]">
+        <div className="flex flex-col space-y-4 mb-6 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center">
+          <h2 className="text-2xl font-bold text-slate-800">Посещаемость 0941</h2>
+          <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-4">
             <Select
               value={viewType}
               onValueChange={(value: ViewType) => setViewType(value)}
             >
-              <SelectTrigger className="w-[120px]">
+              <SelectTrigger className="w-full sm:w-[120px]">
                 <SelectValue placeholder="View type" />
               </SelectTrigger>
               <SelectContent>
@@ -66,7 +66,7 @@ const AttendanceTable = () => {
               value={selectedMonth}
               onValueChange={(value) => setSelectedMonth(value)}
             >
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-full sm:w-[200px]">
                 <SelectValue placeholder="Select month" />
               </SelectTrigger>
               <SelectContent>
@@ -77,28 +77,31 @@ const AttendanceTable = () => {
                 ))}
               </SelectContent>
             </Select>
-            <Button variant="outline" onClick={handleExport}>
-              Export to Excel
-            </Button>
-            <Button variant="outline" onClick={handleAddStudent}>
-              Add Student
-            </Button>
+            <div className="flex space-x-2">
+              <Button className="flex-1 sm:flex-none" variant="outline" onClick={handleExport}>
+                Export
+              </Button>
+              <Button className="flex-1 sm:flex-none" variant="outline" onClick={handleAddStudent}>
+                Add Student
+              </Button>
+            </div>
           </div>
         </div>
-        <div className="border rounded-lg overflow-hidden">
+
+        <div className="border rounded-lg overflow-hidden bg-white">
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse bg-white">
+            <table className="w-full border-collapse">
               <thead>
                 <tr className="bg-gray-50">
-                  <th className="border-b px-6 py-3 text-left text-sm font-semibold text-slate-800 sticky left-0 bg-gray-50 z-10">
+                  <th className="border-b px-4 py-3 text-left text-sm font-semibold text-slate-800 sticky left-0 bg-gray-50 z-10 min-w-[150px]">
                     Фамилия Имя
                   </th>
                   {dates.map(date => (
-                    <th key={date} className="border-b px-6 py-3 text-center text-sm font-semibold text-slate-800">
+                    <th key={date} className="border-b px-3 py-3 text-center text-sm font-semibold text-slate-800 min-w-[60px]">
                       {new Date(date).toLocaleDateString('en-US', { day: 'numeric' })}
                     </th>
                   ))}
-                  <th className="border-b px-6 py-3 text-center text-sm font-semibold text-slate-800">
+                  <th className="border-b px-4 py-3 text-center text-sm font-semibold text-slate-800 min-w-[80px]">
                     Actions
                   </th>
                 </tr>
@@ -106,11 +109,11 @@ const AttendanceTable = () => {
               <tbody>
                 {students.map(student => (
                   <tr key={student.id} className="hover:bg-gray-50">
-                    <td className="border-b px-6 py-4 text-sm text-slate-800 sticky left-0 bg-white z-10">
+                    <td className="border-b px-4 py-3 text-sm text-slate-800 sticky left-0 bg-white z-10 whitespace-nowrap">
                       {student.name}
                     </td>
                     {dates.map(date => (
-                      <td key={date} className="border-b px-6 py-4 text-center">
+                      <td key={date} className="border-b px-3 py-3 text-center">
                         <div className="flex justify-center">
                           <Checkbox
                             checked={attendance[student.id]?.[date] || false}
@@ -122,7 +125,7 @@ const AttendanceTable = () => {
                         </div>
                       </td>
                     ))}
-                    <td className="border-b px-6 py-4 text-center">
+                    <td className="border-b px-4 py-3 text-center">
                       <button
                         onClick={() => handleRemoveStudent(student.id)}
                         className="text-red-500 hover:text-red-700 transition-colors"
@@ -145,9 +148,9 @@ const AttendanceTable = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {missingStudents.map(student => (
-                  <div key={student.id} className="text-sm text-slate-800">
+                  <div key={student.id} className="text-sm text-slate-800 p-2 bg-gray-50 rounded">
                     {student.name}
                   </div>
                 ))}
