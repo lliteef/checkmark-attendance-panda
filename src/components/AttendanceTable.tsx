@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { ViewType, getDatesForView, getLastTwelveMonths, exportToExcel } from "@/utils/attendanceUtils";
 import { useAttendanceSync } from '@/hooks/useAttendanceSync';
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 const AttendanceTable = () => {
   const { students, attendance, addStudent, removeStudent, updateAttendance } = useAttendanceSync();
@@ -34,6 +35,13 @@ const AttendanceTable = () => {
   const handleExport = () => {
     exportToExcel(students, dates, attendance);
   };
+
+  const missingStudents = useMemo(() => {
+    if (viewType !== 'day' || dates.length === 0) return [];
+    
+    const currentDate = dates[0]; // In day view, there's only one date
+    return students.filter(student => !attendance[student.id]?.[currentDate]);
+  }, [students, attendance, dates, viewType]);
 
   return (
     <div className="w-full overflow-x-auto">
@@ -128,6 +136,25 @@ const AttendanceTable = () => {
             </table>
           </div>
         </div>
+
+        {viewType === 'day' && missingStudents.length > 0 && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-red-600">
+                Missing Students ({missingStudents.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {missingStudents.map(student => (
+                  <div key={student.id} className="text-sm text-slate-800">
+                    {student.name}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
