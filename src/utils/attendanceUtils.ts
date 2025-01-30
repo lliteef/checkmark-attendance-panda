@@ -27,11 +27,11 @@ export const getDatesForView = (viewType: ViewType, selectedMonth: string): stri
     }
     
     case "month": {
-      // Always start from the first day of the selected month
-      const date = new Date(year, month - 1, 1);
-      while (date.getMonth() === month - 1) {
-        dates.push(date.toISOString().split('T')[0]);
-        date.setDate(date.getDate() + 1);
+      const firstDay = new Date(year, month - 1, 1);
+      const lastDay = new Date(year, month, 0); // This will give us the last day of the selected month
+      
+      for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
+        dates.push(d.toISOString().split('T')[0]);
       }
       return dates;
     }
@@ -40,7 +40,7 @@ export const getDatesForView = (viewType: ViewType, selectedMonth: string): stri
 
 export const getLastTwelveMonths = () => {
   const months = [];
-  const today = new Date(2025, new Date().getMonth(), 1); // Force 2025
+  const today = new Date();
   
   for (let i = 0; i < 12; i++) {
     const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
