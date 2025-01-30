@@ -1,58 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import { ViewType, getDatesForView, getLastTwelveMonths, exportToExcel } from "@/utils/attendanceUtils";
-
-interface Student {
-  id: string;
-  name: string;
-}
-
-interface AttendanceRecord {
-  [key: string]: {
-    [date: string]: boolean;
-  };
-}
+import { useAttendanceSync } from '@/hooks/useAttendanceSync';
 
 const AttendanceTable = () => {
-  const [students, setStudents] = useState<Student[]>(() => {
-    const saved = localStorage.getItem('students');
-    return saved ? JSON.parse(saved) : [
-      { id: '1', name: 'Агапова Марина' },
-      { id: '2', name: 'Айвазян Жозефина' },
-      { id: '3', name: 'Афатова Виктория' },
-      { id: '4', name: 'Баранова Карина' },
-      { id: '5', name: 'Булгина Варвара' },
-      { id: '6', name: 'Булыгин Роман' },
-      { id: '7', name: 'Гонтарюк Анастасия' },
-      { id: '8', name: 'Дианова Карина' },
-      { id: '9', name: 'Илясова Ирина' },
-      { id: '10', name: 'Кабиров Абубакр' },
-      { id: '11', name: 'Карпова Полина' },
-      { id: '12', name: 'Медведев Данила' },
-      { id: '13', name: 'Мелихова Евгения' },
-      { id: '14', name: 'Мирзониджотов Моил' },
-      { id: '15', name: 'Павлицына Анна' },
-      { id: '16', name: 'Развезева Мирра' },
-      { id: '17', name: 'Рахимова Алина' },
-      { id: '18', name: 'Скворцова Анна' },
-      { id: '19', name: 'Тимофеев Алексей' },
-      { id: '20', name: 'Уласевич Анастасия' },
-      { id: '21', name: 'Федосеев Данила' },
-      { id: '22', name: 'Федько Святослав' },
-      { id: '23', name: 'Холостенко Александр' },
-      { id: '24', name: 'Челышева Виктория' },
-      { id: '25', name: 'Черникова Алевтина' },
-    ];
-  });
-
-  const [attendance, setAttendance] = useState<AttendanceRecord>(() => {
-    const saved = localStorage.getItem('attendance');
-    return saved ? JSON.parse(saved) : {};
-  });
-
+  const { students, attendance, addStudent, removeStudent, updateAttendance } = useAttendanceSync();
   const [viewType, setViewType] = useState<ViewType>("day");
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const today = new Date();
@@ -62,47 +16,23 @@ const AttendanceTable = () => {
   const dates = getDatesForView(viewType, selectedMonth);
   const months = getLastTwelveMonths();
 
-  useEffect(() => {
-    localStorage.setItem('students', JSON.stringify(students));
-    localStorage.setItem('attendance', JSON.stringify(attendance));
-  }, [students, attendance]);
-
   const handleAttendanceChange = (studentId: string, date: string, checked: boolean) => {
-    setAttendance(prev => ({
-      ...prev,
-      [studentId]: {
-        ...prev[studentId],
-        [date]: checked,
-      },
-    }));
-    toast.success(`Attendance ${checked ? 'marked' : 'unmarked'}`);
+    updateAttendance(studentId, date, checked);
   };
 
-  const addStudent = () => {
+  const handleAddStudent = () => {
     const name = prompt('Enter student name:');
     if (name) {
-      const newStudent = {
-        id: Date.now().toString(),
-        name,
-      };
-      setStudents(prev => [...prev, newStudent]);
-      toast.success('Student added successfully');
+      addStudent(name);
     }
   };
 
-  const removeStudent = (studentId: string) => {
-    setStudents(prev => prev.filter(student => student.id !== studentId));
-    setAttendance(prev => {
-      const newAttendance = { ...prev };
-      delete newAttendance[studentId];
-      return newAttendance;
-    });
-    toast.success('Student removed successfully');
+  const handleRemoveStudent = (studentId: string) => {
+    removeStudent(studentId);
   };
 
   const handleExport = () => {
     exportToExcel(students, dates, attendance);
-    toast.success("Export feature coming soon!");
   };
 
   return (
@@ -139,11 +69,11 @@ const AttendanceTable = () => {
                 ))}
               </SelectContent>
             </Select>
-            <Button
-              variant="outline"
-              onClick={handleExport}
-            >
+            <Button variant="outline" onClick={handleExport}>
               Export to Excel
+            </Button>
+            <Button variant="outline" onClick={handleAddStudent}>
+              Add Student
             </Button>
           </div>
         </div>
@@ -186,7 +116,7 @@ const AttendanceTable = () => {
                     ))}
                     <td className="border-b px-6 py-4 text-center">
                       <button
-                        onClick={() => removeStudent(student.id)}
+                        onClick={() => handleRemoveStudent(student.id)}
                         className="text-red-500 hover:text-red-700 transition-colors"
                       >
                         Remove
