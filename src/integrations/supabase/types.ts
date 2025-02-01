@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       attendance_records: {
         Row: {
+          absence_reason: string | null
           created_at: string
           date: string
           id: string
@@ -18,6 +19,7 @@ export type Database = {
           student_id: string | null
         }
         Insert: {
+          absence_reason?: string | null
           created_at?: string
           date: string
           id?: string
@@ -25,6 +27,7 @@ export type Database = {
           student_id?: string | null
         }
         Update: {
+          absence_reason?: string | null
           created_at?: string
           date?: string
           id?: string

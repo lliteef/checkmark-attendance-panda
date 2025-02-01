@@ -9,7 +9,10 @@ export interface Student {
 
 export interface AttendanceRecord {
   [key: string]: {
-    [date: string]: boolean;
+    [date: string]: {
+      is_present: boolean;
+      absence_reason?: string;
+    };
   };
 }
 
@@ -29,7 +32,6 @@ export const useAttendanceSync = () => {
 
         if (studentsError) throw studentsError;
 
-        // Transform UUID to string for compatibility
         const transformedStudents = studentsData.map(s => ({
           id: s.id,
           name: s.name
@@ -43,18 +45,21 @@ export const useAttendanceSync = () => {
 
         if (attendanceError) throw attendanceError;
 
-        // Transform attendance data to match existing format
+        // Transform attendance data to include absence reasons
         const attendanceMap: AttendanceRecord = {};
         attendanceData.forEach((record) => {
           if (!attendanceMap[record.student_id]) {
             attendanceMap[record.student_id] = {};
           }
-          attendanceMap[record.student_id][record.date] = record.is_present;
+          attendanceMap[record.student_id][record.date] = {
+            is_present: record.is_present || false,
+            absence_reason: record.absence_reason
+          };
         });
         setAttendance(attendanceMap);
       } catch (error) {
         console.error('Error fetching data:', error);
-        toast.error('Failed to load attendance data');
+        toast.error('Ошибка при загрузке данных');
       }
     };
 
@@ -63,7 +68,6 @@ export const useAttendanceSync = () => {
 
   // Set up real-time subscriptions
   useEffect(() => {
-    // Subscribe to students changes
     const studentsChannel = supabase
       .channel('students_changes')
       .on(
@@ -138,11 +142,11 @@ export const useAttendanceSync = () => {
         .single();
 
       if (error) throw error;
-      toast.success('Student added successfully');
+      toast.success('Студент добавлен');
       return data;
     } catch (error) {
       console.error('Error adding student:', error);
-      toast.error('Failed to add student');
+      toast.error('Ошибка при добавлении студента');
       throw error;
     }
   };
@@ -155,10 +159,10 @@ export const useAttendanceSync = () => {
         .eq('id', studentId);
 
       if (error) throw error;
-      toast.success('Student removed successfully');
+      toast.success('Студент удален');
     } catch (error) {
       console.error('Error removing student:', error);
-      toast.error('Failed to remove student');
+      toast.error('Ошибка при удалении студента');
       throw error;
     }
   };
@@ -170,16 +174,37 @@ export const useAttendanceSync = () => {
         .upsert({
           student_id: studentId,
           date,
-          is_present: isPresent
+          is_present: isPresent,
+          absence_reason: isPresent ? null : attendance[studentId]?.[date]?.absence_reason
         }, {
           onConflict: 'student_id,date'
         });
 
       if (error) throw error;
-      toast.success(`Attendance ${isPresent ? 'marked' : 'unmarked'}`);
+      toast.success(isPresent ? 'Присутствие отмечено' : 'Отсутствие отмечено');
     } catch (error) {
       console.error('Error updating attendance:', error);
-      toast.error('Failed to update attendance');
+      toast.error('Ошибка при обновлении посещаемости');
+      throw error;
+    }
+  };
+
+  const updateAbsenceReason = async (studentId: string, date: string, reason: string) => {
+    try {
+      const { error } = await supabase
+        .from('attendance_records')
+        .upsert({
+          student_id: studentId,
+          date,
+          is_present: false,
+          absence_reason: reason
+        }, {
+          onConflict: 'student_id,date'
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating absence reason:', error);
       throw error;
     }
   };
@@ -189,6 +214,7 @@ export const useAttendanceSync = () => {
     attendance,
     addStudent,
     removeStudent,
-    updateAttendance
+    updateAttendance,
+    updateAbsenceReason
   };
 };

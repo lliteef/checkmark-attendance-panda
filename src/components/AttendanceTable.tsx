@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { ViewType, getDatesForView, getLastTwelveMonths, exportToExcel } from "@/utils/attendanceUtils";
 import { useAttendanceSync } from '@/hooks/useAttendanceSync';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { toast } from "sonner";
 
 const AttendanceTable = () => {
-  const { students, attendance, addStudent, removeStudent, updateAttendance } = useAttendanceSync();
+  const { students, attendance, addStudent, removeStudent, updateAttendance, updateAbsenceReason } = useAttendanceSync();
   const [viewType, setViewType] = useState<ViewType>("day");
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const today = new Date();
@@ -19,6 +20,15 @@ const AttendanceTable = () => {
 
   const handleAttendanceChange = (studentId: string, date: string, checked: boolean) => {
     updateAttendance(studentId, date, checked);
+  };
+
+  const handleAbsenceReasonChange = async (studentId: string, date: string, reason: string) => {
+    try {
+      await updateAbsenceReason(studentId, date, reason);
+      toast.success('Причина отсутствия обновлена');
+    } catch (error) {
+      toast.error('Ошибка при обновлении причины отсутствия');
+    }
   };
 
   const handleAddStudent = () => {
@@ -150,8 +160,21 @@ const AttendanceTable = () => {
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {missingStudents.map(student => (
-                  <div key={student.id} className="text-sm text-slate-800 p-2 bg-gray-50 rounded">
-                    {student.name}
+                  <div key={student.id} className="flex flex-col space-y-2 p-3 bg-gray-50 rounded">
+                    <div className="text-sm text-slate-800">{student.name}</div>
+                    <Select
+                      value={attendance[student.id]?.[dates[0]]?.absence_reason || ''}
+                      onValueChange={(value) => handleAbsenceReasonChange(student.id, dates[0], value)}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Причина" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="б">Больничный (б)</SelectItem>
+                        <SelectItem value="н">Неявка/прогул (н)</SelectItem>
+                        <SelectItem value="п">Пропуск по приказу (п)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 ))}
               </div>
