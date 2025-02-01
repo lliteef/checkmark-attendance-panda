@@ -101,7 +101,11 @@ export const exportToExcel = (students: any[], dates: string[], attendance: any)
         if (isWeekend(dateObj)) {
           return 'в';
         }
-        return attendance[student.id]?.[date]?.is_present ? '✓' : '';
+        const record = attendance[student.id]?.[date];
+        if (!record?.is_present) {
+          return record?.absence_reason || 'н'; // If no reason specified, default to 'н'
+        }
+        return '✓';
       })
     ];
     XLSX.utils.sheet_add_aoa(worksheet, [rowData], { origin: -1 });
