@@ -160,19 +160,19 @@ const AttendanceTable = () => {
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {missingStudents.map(student => (
-                  <div key={student.id} className="flex flex-col space-y-2 p-3 bg-gray-50 rounded">
+                  <div key={student.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
                     <div className="text-sm text-slate-800">{student.name}</div>
                     <Select
                       value={attendance[student.id]?.[dates[0]]?.absence_reason || ''}
                       onValueChange={(value) => handleAbsenceReasonChange(student.id, dates[0], value)}
                     >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Причина" />
+                      <SelectTrigger className="w-[60px] h-8">
+                        <SelectValue placeholder="?" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="б">Больничный (б)</SelectItem>
-                        <SelectItem value="н">Неявка/прогул (н)</SelectItem>
-                        <SelectItem value="п">Пропуск по приказу (п)</SelectItem>
+                        <SelectItem value="б">б</SelectItem>
+                        <SelectItem value="н">н</SelectItem>
+                        <SelectItem value="п">п</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
