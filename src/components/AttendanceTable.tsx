@@ -22,7 +22,7 @@ const AttendanceTable = () => {
   };
 
   const handleAddStudent = () => {
-    const name = prompt('Enter student name:');
+    const name = prompt('Введите имя студента:');
     if (name) {
       addStudent(name);
     }
@@ -39,7 +39,7 @@ const AttendanceTable = () => {
   const missingStudents = useMemo(() => {
     if (viewType !== 'day' || dates.length === 0) return [];
     
-    const currentDate = dates[0]; // In day view, there's only one date
+    const currentDate = dates[0];
     return students.filter(student => !attendance[student.id]?.[currentDate]);
   }, [students, attendance, dates, viewType]);
 
@@ -54,12 +54,12 @@ const AttendanceTable = () => {
               onValueChange={(value: ViewType) => setViewType(value)}
             >
               <SelectTrigger className="w-full sm:w-[120px]">
-                <SelectValue placeholder="View type" />
+                <SelectValue placeholder="Вид" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="day">Day</SelectItem>
-                <SelectItem value="week">Week</SelectItem>
-                <SelectItem value="month">Month</SelectItem>
+                <SelectItem value="day">День</SelectItem>
+                <SelectItem value="week">Неделя</SelectItem>
+                <SelectItem value="month">Месяц</SelectItem>
               </SelectContent>
             </Select>
             <Select
@@ -67,7 +67,7 @@ const AttendanceTable = () => {
               onValueChange={(value) => setSelectedMonth(value)}
             >
               <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Select month" />
+                <SelectValue placeholder="Выберите месяц" />
               </SelectTrigger>
               <SelectContent>
                 {months.map((month) => (
@@ -79,10 +79,10 @@ const AttendanceTable = () => {
             </Select>
             <div className="flex space-x-2">
               <Button className="flex-1 sm:flex-none" variant="outline" onClick={handleExport}>
-                Export
+                Экспорт
               </Button>
               <Button className="flex-1 sm:flex-none" variant="outline" onClick={handleAddStudent}>
-                Add Student
+                Добавить студента
               </Button>
             </div>
           </div>
@@ -98,11 +98,11 @@ const AttendanceTable = () => {
                   </th>
                   {dates.map(date => (
                     <th key={date} className="border-b px-3 py-3 text-center text-sm font-semibold text-slate-800 min-w-[60px]">
-                      {new Date(date).toLocaleDateString('en-US', { day: 'numeric' })}
+                      {new Date(date).toLocaleDateString('ru-RU', { day: 'numeric' })}
                     </th>
                   ))}
                   <th className="border-b px-4 py-3 text-center text-sm font-semibold text-slate-800 min-w-[80px]">
-                    Actions
+                    Действия
                   </th>
                 </tr>
               </thead>
@@ -130,7 +130,7 @@ const AttendanceTable = () => {
                         onClick={() => handleRemoveStudent(student.id)}
                         className="text-red-500 hover:text-red-700 transition-colors"
                       >
-                        Remove
+                        Удалить
                       </button>
                     </td>
                   </tr>
@@ -144,7 +144,7 @@ const AttendanceTable = () => {
           <Card className="mt-6">
             <CardHeader>
               <CardTitle className="text-lg font-semibold text-red-600">
-                Missing Students ({missingStudents.length})
+                Отсутствующие студенты ({missingStudents.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
