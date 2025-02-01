@@ -20,11 +20,9 @@ export const useAttendanceSync = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [attendance, setAttendance] = useState<AttendanceRecord>({});
 
-  // Fetch initial data
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch students
         const { data: studentsData, error: studentsError } = await supabase
           .from('students')
           .select('*')
@@ -38,14 +36,12 @@ export const useAttendanceSync = () => {
         }));
         setStudents(transformedStudents);
 
-        // Fetch attendance records
         const { data: attendanceData, error: attendanceError } = await supabase
           .from('attendance_records')
           .select('*');
 
         if (attendanceError) throw attendanceError;
 
-        // Transform attendance data to include absence reasons
         const attendanceMap: AttendanceRecord = {};
         attendanceData.forEach((record) => {
           if (!attendanceMap[record.student_id]) {
@@ -66,7 +62,6 @@ export const useAttendanceSync = () => {
     fetchData();
   }, []);
 
-  // Set up real-time subscriptions
   useEffect(() => {
     const studentsChannel = supabase
       .channel('students_changes')
@@ -75,7 +70,6 @@ export const useAttendanceSync = () => {
         { event: '*', schema: 'public', table: 'students' },
         (payload) => {
           console.log('Students change received:', payload);
-          // Refresh students data
           supabase
             .from('students')
             .select('*')
@@ -90,13 +84,12 @@ export const useAttendanceSync = () => {
                 name: s.name
               }));
               setStudents(transformedStudents);
-              toast.success('Student list updated');
+              toast.success('Список студентов обновлен');
             });
         }
       )
       .subscribe();
 
-    // Subscribe to attendance changes
     const attendanceChannel = supabase
       .channel('attendance_changes')
       .on(
@@ -104,7 +97,6 @@ export const useAttendanceSync = () => {
         { event: '*', schema: 'public', table: 'attendance_records' },
         (payload) => {
           console.log('Attendance change received:', payload);
-          // Refresh attendance data
           supabase
             .from('attendance_records')
             .select('*')
@@ -118,10 +110,13 @@ export const useAttendanceSync = () => {
                 if (!attendanceMap[record.student_id]) {
                   attendanceMap[record.student_id] = {};
                 }
-                attendanceMap[record.student_id][record.date] = record.is_present;
+                attendanceMap[record.student_id][record.date] = {
+                  is_present: record.is_present || false,
+                  absence_reason: record.absence_reason
+                };
               });
               setAttendance(attendanceMap);
-              toast.success('Attendance records updated');
+              toast.success('Данные посещаемости обновлены');
             });
         }
       )

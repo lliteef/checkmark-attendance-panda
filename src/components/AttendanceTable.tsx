@@ -50,7 +50,7 @@ const AttendanceTable = () => {
     if (viewType !== 'day' || dates.length === 0) return [];
     
     const currentDate = dates[0];
-    return students.filter(student => !attendance[student.id]?.[currentDate]);
+    return students.filter(student => !attendance[student.id]?.[currentDate]?.is_present);
   }, [students, attendance, dates, viewType]);
 
   return (
@@ -126,7 +126,7 @@ const AttendanceTable = () => {
                       <td key={date} className="border-b px-3 py-3 text-center">
                         <div className="flex justify-center">
                           <Checkbox
-                            checked={attendance[student.id]?.[date] || false}
+                            checked={attendance[student.id]?.[date]?.is_present || false}
                             onCheckedChange={(checked) => 
                               handleAttendanceChange(student.id, date, checked as boolean)
                             }
