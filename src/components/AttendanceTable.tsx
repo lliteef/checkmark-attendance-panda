@@ -18,6 +18,23 @@ const AttendanceTable = () => {
   const dates = getDatesForView(viewType, selectedMonth);
   const months = getLastTwelveMonths();
 
+  const isWeekend = (date: string): boolean => {
+    const dateObj = new Date(date);
+    const day = dateObj.getDay();
+    return day === 0 || day === 6;
+  };
+
+  const getNextMonday = (date: string): string => {
+    const dateObj = new Date(date);
+    while (dateObj.getDay() !== 1) {
+      dateObj.setDate(dateObj.getDate() + 1);
+    }
+    return dateObj.toLocaleDateString('ru-RU', { 
+      day: 'numeric',
+      month: 'long'
+    });
+  };
+
   const handleAttendanceChange = (studentId: string, date: string, checked: boolean) => {
     updateAttendance(studentId, date, checked);
   };
@@ -52,6 +69,9 @@ const AttendanceTable = () => {
     const currentDate = dates[0];
     return students.filter(student => !attendance[student.id]?.[currentDate]?.is_present);
   }, [students, attendance, dates, viewType]);
+
+  const currentDate = dates[0];
+  const isCurrentDateWeekend = currentDate && isWeekend(currentDate);
 
   return (
     <div className="w-full">
@@ -98,88 +118,101 @@ const AttendanceTable = () => {
           </div>
         </div>
 
-        <div className="border rounded-lg overflow-hidden bg-white">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="border-b px-4 py-3 text-left text-sm font-semibold text-slate-800 sticky left-0 bg-gray-50 z-10 min-w-[150px]">
-                    Фамилия Имя
-                  </th>
-                  {dates.map(date => (
-                    <th key={date} className="border-b px-3 py-3 text-center text-sm font-semibold text-slate-800 min-w-[60px]">
-                      {new Date(date).toLocaleDateString('ru-RU', { day: 'numeric' })}
-                    </th>
-                  ))}
-                  <th className="border-b px-4 py-3 text-center text-sm font-semibold text-slate-800 min-w-[80px]">
-                    Действия
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {students.map(student => (
-                  <tr key={student.id} className="hover:bg-gray-50">
-                    <td className="border-b px-4 py-3 text-sm text-slate-800 sticky left-0 bg-white z-10 whitespace-nowrap">
-                      {student.name}
-                    </td>
-                    {dates.map(date => (
-                      <td key={date} className="border-b px-3 py-3 text-center">
-                        <div className="flex justify-center">
-                          <Checkbox
-                            checked={attendance[student.id]?.[date]?.is_present || false}
-                            onCheckedChange={(checked) => 
-                              handleAttendanceChange(student.id, date, checked as boolean)
-                            }
-                            className="data-[state=checked]:animate-checkbox-check"
-                          />
-                        </div>
-                      </td>
-                    ))}
-                    <td className="border-b px-4 py-3 text-center">
-                      <button
-                        onClick={() => handleRemoveStudent(student.id)}
-                        className="text-red-500 hover:text-red-700 transition-colors"
-                      >
-                        Удалить
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {viewType === 'day' && missingStudents.length > 0 && (
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-red-600">
-                Отсутствующие студенты ({missingStudents.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {missingStudents.map(student => (
-                  <div key={student.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                    <div className="text-sm text-slate-800">{student.name}</div>
-                    <Select
-                      value={attendance[student.id]?.[dates[0]]?.absence_reason || ''}
-                      onValueChange={(value) => handleAbsenceReasonChange(student.id, dates[0], value)}
-                    >
-                      <SelectTrigger className="w-[60px] h-8">
-                        <SelectValue placeholder="?" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="б">б</SelectItem>
-                        <SelectItem value="н">н</SelectItem>
-                        <SelectItem value="п">п</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ))}
+        {isCurrentDateWeekend && viewType === 'day' ? (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center text-lg text-slate-800">
+                <p>Сегодня выходной день.</p>
+                <p className="mt-2">Возвращайтесь {getNextMonday(currentDate)}!</p>
               </div>
             </CardContent>
           </Card>
+        ) : (
+          <>
+            <div className="border rounded-lg overflow-hidden bg-white">
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="border-b px-4 py-3 text-left text-sm font-semibold text-slate-800 sticky left-0 bg-gray-50 z-10 min-w-[150px]">
+                        Фамилия Имя
+                      </th>
+                      {dates.map(date => (
+                        <th key={date} className="border-b px-3 py-3 text-center text-sm font-semibold text-slate-800 min-w-[60px]">
+                          {new Date(date).toLocaleDateString('ru-RU', { day: 'numeric' })}
+                        </th>
+                      ))}
+                      <th className="border-b px-4 py-3 text-center text-sm font-semibold text-slate-800 min-w-[80px]">
+                        Действия
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {students.map(student => (
+                      <tr key={student.id} className="hover:bg-gray-50">
+                        <td className="border-b px-4 py-3 text-sm text-slate-800 sticky left-0 bg-white z-10 whitespace-nowrap">
+                          {student.name}
+                        </td>
+                        {dates.map(date => (
+                          <td key={date} className="border-b px-3 py-3 text-center">
+                            <div className="flex justify-center">
+                              <Checkbox
+                                checked={attendance[student.id]?.[date]?.is_present || false}
+                                onCheckedChange={(checked) => 
+                                  handleAttendanceChange(student.id, date, checked as boolean)
+                                }
+                                className="data-[state=checked]:animate-checkbox-check"
+                              />
+                            </div>
+                          </td>
+                        ))}
+                        <td className="border-b px-4 py-3 text-center">
+                          <button
+                            onClick={() => handleRemoveStudent(student.id)}
+                            className="text-red-500 hover:text-red-700 transition-colors"
+                          >
+                            Удалить
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {viewType === 'day' && missingStudents.length > 0 && (
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle className="text-lg font-semibold text-red-600">
+                    Отсутствующие студенты ({missingStudents.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {missingStudents.map(student => (
+                      <div key={student.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                        <div className="text-sm text-slate-800">{student.name}</div>
+                        <Select
+                          value={attendance[student.id]?.[dates[0]]?.absence_reason || ''}
+                          onValueChange={(value) => handleAbsenceReasonChange(student.id, dates[0], value)}
+                        >
+                          <SelectTrigger className="w-[60px] h-8">
+                            <SelectValue placeholder="?" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="б">б</SelectItem>
+                            <SelectItem value="н">н</SelectItem>
+                            <SelectItem value="п">п</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </>
         )}
       </div>
     </div>

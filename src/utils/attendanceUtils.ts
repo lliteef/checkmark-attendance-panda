@@ -2,6 +2,22 @@ import * as XLSX from 'xlsx';
 
 export type ViewType = "day" | "week" | "month";
 
+const isWeekend = (date: Date): boolean => {
+  const day = date.getDay();
+  return day === 0 || day === 6; // 0 = воскресенье, 6 = суббота
+};
+
+const getNextMonday = (date: Date): string => {
+  const nextMonday = new Date(date);
+  while (nextMonday.getDay() !== 1) {
+    nextMonday.setDate(nextMonday.getDate() + 1);
+  }
+  return nextMonday.toLocaleDateString('ru-RU', { 
+    day: 'numeric',
+    month: 'long'
+  });
+};
+
 export const getDatesForView = (viewType: ViewType, selectedMonth: string): string[] => {
   const today = new Date();
   const [year, month] = selectedMonth.split('-').map(Number);
@@ -14,7 +30,7 @@ export const getDatesForView = (viewType: ViewType, selectedMonth: string): stri
     case "week": {
       const currentDate = new Date();
       const currentDay = currentDate.getDay();
-      const diff = currentDay === 0 ? 6 : currentDay - 1; // Adjust for Monday start
+      const diff = currentDay === 0 ? 6 : currentDay - 1;
       const monday = new Date(currentDate);
       monday.setDate(currentDate.getDate() - diff);
       
@@ -22,14 +38,18 @@ export const getDatesForView = (viewType: ViewType, selectedMonth: string): stri
       for (let i = 0; i < 7; i++) {
         const date = new Date(monday);
         date.setDate(monday.getDate() + i);
-        dates.push(date.toISOString().split('T')[0]);
+        if (!isWeekend(date)) {
+          dates.push(date.toISOString().split('T')[0]);
+        }
       }
       return dates;
     }
     case "month": {
       const dates = [];
       for (let date = new Date(firstDayOfMonth); date <= lastDayOfMonth; date.setDate(date.getDate() + 1)) {
-        dates.push(date.toISOString().split('T')[0]);
+        if (!isWeekend(date)) {
+          dates.push(date.toISOString().split('T')[0]);
+        }
       }
       return dates;
     }
@@ -76,7 +96,13 @@ export const exportToExcel = (students: any[], dates: string[], attendance: any)
   students.forEach((student, index) => {
     const rowData = [
       student.name,
-      ...dates.map(date => attendance[student.id]?.[date] ? '✓' : '')
+      ...dates.map(date => {
+        const dateObj = new Date(date);
+        if (isWeekend(dateObj)) {
+          return 'в';
+        }
+        return attendance[student.id]?.[date]?.is_present ? '✓' : '';
+      })
     ];
     XLSX.utils.sheet_add_aoa(worksheet, [rowData], { origin: -1 });
   });
