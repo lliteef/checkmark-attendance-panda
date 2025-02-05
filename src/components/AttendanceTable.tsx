@@ -6,6 +6,8 @@ import { ViewType, getDatesForView, getLastTwelveMonths, exportToExcel } from "@
 import { useAttendanceSync } from '@/hooks/useAttendanceSync';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
+import { CalendarCog } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const AttendanceTable = () => {
   const { students, attendance, addStudent, removeStudent, updateAttendance, updateAbsenceReason } = useAttendanceSync();
@@ -110,6 +112,42 @@ const AttendanceTable = () => {
               </Select>
             )}
             <div className="flex space-x-2">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" className="gap-2">
+                    <CalendarCog className="h-4 w-4" />
+                    Редактировать календарь
+                  </Button>
+                </SheetTrigger>
+                <SheetContent>
+                  <SheetHeader>
+                    <SheetTitle>Настройки календаря</SheetTitle>
+                  </SheetHeader>
+                  <div className="py-6">
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="text-sm font-medium mb-2">Рабочие дни</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          {['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница'].map((day) => (
+                            <div key={day} className="flex items-center space-x-2">
+                              <Checkbox id={day} defaultChecked />
+                              <label htmlFor={day} className="text-sm">
+                                {day}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium mb-2">Праздничные дни</h3>
+                        <Button variant="outline" className="w-full">
+                          Добавить праздничный день
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
               <Button className="flex-1 sm:flex-none" variant="outline" onClick={handleExport}>
                 Экспорт
               </Button>
