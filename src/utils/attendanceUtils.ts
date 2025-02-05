@@ -35,21 +35,24 @@ export const getDatesForView = (viewType: ViewType, selectedMonth: string): stri
       monday.setDate(currentDate.getDate() - diff);
       
       const dates = [];
-      for (let i = 0; i < 7; i++) {
+      for (let i = 0; i < 5; i++) { // Changed to 5 to only include Monday-Friday
         const date = new Date(monday);
         date.setDate(monday.getDate() + i);
-        if (!isWeekend(date)) {
-          dates.push(date.toISOString().split('T')[0]);
-        }
+        dates.push(date.toISOString().split('T')[0]);
       }
       return dates;
     }
     case "month": {
       const dates = [];
-      for (let date = new Date(firstDayOfMonth); date <= lastDayOfMonth; date.setDate(date.getDate() + 1)) {
-        if (!isWeekend(date)) {
-          dates.push(date.toISOString().split('T')[0]);
+      const currentDate = new Date(firstDayOfMonth);
+      
+      while (currentDate <= lastDayOfMonth) {
+        const dayOfWeek = currentDate.getDay();
+        // Include Monday (1) through Friday (5)
+        if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+          dates.push(currentDate.toISOString().split('T')[0]);
         }
+        currentDate.setDate(currentDate.getDate() + 1);
       }
       return dates;
     }
