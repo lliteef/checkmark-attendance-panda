@@ -6,8 +6,9 @@ import { ViewType, getDatesForView, getLastTwelveMonths, exportToExcel } from "@
 import { useAttendanceSync } from '@/hooks/useAttendanceSync';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { CalendarCog } from "lucide-react";
+import { CalendarCog, CalendarPlus } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Calendar } from "@/components/ui/calendar";
 
 const AttendanceTable = () => {
   const { students, attendance, addStudent, removeStudent, updateAttendance, updateAbsenceReason } = useAttendanceSync();
@@ -16,6 +17,7 @@ const AttendanceTable = () => {
     const today = new Date();
     return `2024-${String(today.getMonth() + 1).padStart(2, '0')}`;
   });
+  const [calendarDate, setCalendarDate] = useState<Date>();
 
   const dates = getDatesForView(viewType, selectedMonth);
   const months = getLastTwelveMonths();
@@ -63,6 +65,13 @@ const AttendanceTable = () => {
 
   const handleExport = () => {
     exportToExcel(students, dates, attendance);
+  };
+
+  const handleAddSpecialDay = (date: Date | undefined) => {
+    if (date) {
+      toast.success(`День ${date.toLocaleDateString('ru-RU')} добавлен в календарь`);
+      setCalendarDate(undefined);
+    }
   };
 
   const missingStudents = useMemo(() => {
@@ -139,10 +148,24 @@ const AttendanceTable = () => {
                         </div>
                       </div>
                       <div>
-                        <h3 className="text-sm font-medium mb-2">Праздничные дни</h3>
-                        <Button variant="outline" className="w-full">
-                          Добавить праздничный день
-                        </Button>
+                        <h3 className="text-sm font-medium mb-2">Добавить день в календарь</h3>
+                        <div className="space-y-4">
+                          <Calendar
+                            mode="single"
+                            selected={calendarDate}
+                            onSelect={setCalendarDate}
+                            className="rounded-md border"
+                          />
+                          <Button 
+                            variant="outline" 
+                            className="w-full gap-2"
+                            onClick={() => handleAddSpecialDay(calendarDate)}
+                            disabled={!calendarDate}
+                          >
+                            <CalendarPlus className="h-4 w-4" />
+                            Добавить выбранный день
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
