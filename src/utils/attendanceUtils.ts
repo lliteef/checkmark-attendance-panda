@@ -35,7 +35,7 @@ export const getDatesForView = (viewType: ViewType, selectedMonth: string): stri
       monday.setDate(currentDate.getDate() - diff);
       
       const dates = [];
-      for (let i = 0; i < 5; i++) { // Changed to 5 to only include Monday-Friday
+      for (let i = 0; i < 5; i++) {
         const date = new Date(monday);
         date.setDate(monday.getDate() + i);
         dates.push(date.toISOString().split('T')[0]);
@@ -48,9 +48,8 @@ export const getDatesForView = (viewType: ViewType, selectedMonth: string): stri
       
       while (currentDate <= lastDayOfMonth) {
         const dayOfWeek = currentDate.getDay();
-        // Include Monday (1) through Friday (5)
-        if (dayOfWeek >= 1 && dayOfWeek <= 5) {
-          dates.push(currentDate.toISOString().split('T')[0]);
+        if (dayOfWeek >= 1 && dayOfWeek <= 5) { // Monday = 1, Friday = 5
+          dates.push(new Date(currentDate).toISOString().split('T')[0]);
         }
         currentDate.setDate(currentDate.getDate() + 1);
       }
