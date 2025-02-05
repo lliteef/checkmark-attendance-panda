@@ -92,21 +92,23 @@ const AttendanceTable = () => {
                 <SelectItem value="month">Месяц</SelectItem>
               </SelectContent>
             </Select>
-            <Select
-              value={selectedMonth}
-              onValueChange={(value) => setSelectedMonth(value)}
-            >
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Выберите месяц" />
-              </SelectTrigger>
-              <SelectContent>
-                {months.map((month) => (
-                  <SelectItem key={month.value} value={month.value}>
-                    {month.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {viewType === 'month' && (
+              <Select
+                value={selectedMonth}
+                onValueChange={(value) => setSelectedMonth(value)}
+              >
+                <SelectTrigger className="w-full sm:w-[200px]">
+                  <SelectValue placeholder="Выберите месяц" />
+                </SelectTrigger>
+                <SelectContent>
+                  {months.map((month) => (
+                    <SelectItem key={month.value} value={month.value}>
+                      {month.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             <div className="flex space-x-2">
               <Button className="flex-1 sm:flex-none" variant="outline" onClick={handleExport}>
                 Экспорт
