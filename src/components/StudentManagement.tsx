@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAttendanceSync } from '@/hooks/useAttendanceSync';
 import { Student } from '@/hooks/useAttendanceSync';
 import { GripVertical, Plus, Trash2 } from "lucide-react";

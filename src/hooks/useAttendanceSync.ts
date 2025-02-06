@@ -5,6 +5,7 @@ import { toast } from "sonner";
 export interface Student {
   id: string;
   name: string;
+  position?: number;
 }
 
 export interface AttendanceRecord {
@@ -32,7 +33,8 @@ export const useAttendanceSync = () => {
 
         const transformedStudents = studentsData.map(s => ({
           id: s.id,
-          name: s.name
+          name: s.name,
+          position: s.position
         }));
         setStudents(transformedStudents);
 
@@ -81,7 +83,8 @@ export const useAttendanceSync = () => {
               }
               const transformedStudents = data.map(s => ({
                 id: s.id,
-                name: s.name
+                name: s.name,
+                position: s.position
               }));
               setStudents(transformedStudents);
             });
@@ -131,6 +134,7 @@ export const useAttendanceSync = () => {
       // Update positions for existing students
       const updates = students.slice(position).map((student, index) => ({
         id: student.id,
+        name: student.name,
         position: position + index + 1
       }));
 
@@ -171,6 +175,7 @@ export const useAttendanceSync = () => {
       const remainingStudents = students.filter(s => s.id !== studentId);
       const updates = remainingStudents.map((student, index) => ({
         id: student.id,
+        name: student.name,
         position: index
       }));
 
