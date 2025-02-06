@@ -11,8 +11,12 @@ import { Input } from "@/components/ui/input";
 import { useAttendanceSync } from '@/hooks/useAttendanceSync';
 import { toast } from 'sonner';
 
-const StudentManagement = () => {
-  const { students, addStudent, removeStudent } = useAttendanceSync();
+export interface StudentManagementProps {
+  students: Array<{ id: string; name: string }>;
+}
+
+const StudentManagement: React.FC<StudentManagementProps> = ({ students }) => {
+  const { addStudent, removeStudent } = useAttendanceSync();
   const [newStudentName, setNewStudentName] = useState('');
   const [selectedPosition, setSelectedPosition] = useState<string>('end');
 

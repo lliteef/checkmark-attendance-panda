@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { CalendarCog, CalendarPlus, Users } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Calendar } from "@/components/ui/calendar";
-import { StudentManagement } from './StudentManagement';
+import StudentManagement from './StudentManagement';
 
 const AttendanceTable = () => {
   const { students, attendance, updateAttendance, updateAbsenceReason } = useAttendanceSync();
