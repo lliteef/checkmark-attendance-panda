@@ -27,14 +27,14 @@ export const useAttendanceSync = () => {
         const { data: studentsData, error: studentsError } = await supabase
           .from('students')
           .select('*')
-          .order('position');
+          .order('created_at');
 
         if (studentsError) throw studentsError;
 
-        const transformedStudents = studentsData.map(s => ({
+        const transformedStudents = studentsData.map((s, index) => ({
           id: s.id,
           name: s.name,
-          position: s.position
+          position: index
         }));
         setStudents(transformedStudents);
 
@@ -75,16 +75,16 @@ export const useAttendanceSync = () => {
           supabase
             .from('students')
             .select('*')
-            .order('position')
+            .order('created_at')
             .then(({ data, error }) => {
               if (error) {
                 console.error('Error refreshing students:', error);
                 return;
               }
-              const transformedStudents = data.map(s => ({
+              const transformedStudents = data.map((s, index) => ({
                 id: s.id,
                 name: s.name,
-                position: s.position
+                position: index
               }));
               setStudents(transformedStudents);
             });
@@ -131,25 +131,10 @@ export const useAttendanceSync = () => {
 
   const addStudent = async (name: string, position: number = students.length) => {
     try {
-      // Update positions for existing students
-      const updates = students.slice(position).map((student, index) => ({
-        id: student.id,
-        name: student.name,
-        position: position + index + 1
-      }));
-
-      if (updates.length > 0) {
-        const { error: updateError } = await supabase
-          .from('students')
-          .upsert(updates);
-
-        if (updateError) throw updateError;
-      }
-
       // Add new student
       const { data, error } = await supabase
         .from('students')
-        .insert([{ name, position }])
+        .insert([{ name }])
         .select()
         .single();
 
@@ -170,22 +155,6 @@ export const useAttendanceSync = () => {
         .eq('id', studentId);
 
       if (error) throw error;
-
-      // Update positions for remaining students
-      const remainingStudents = students.filter(s => s.id !== studentId);
-      const updates = remainingStudents.map((student, index) => ({
-        id: student.id,
-        name: student.name,
-        position: index
-      }));
-
-      if (updates.length > 0) {
-        const { error: updateError } = await supabase
-          .from('students')
-          .upsert(updates);
-
-        if (updateError) throw updateError;
-      }
     } catch (error) {
       console.error('Error removing student:', error);
       toast.error('Ошибка при удалении студента');
