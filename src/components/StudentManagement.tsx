@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAttendanceSync } from '@/hooks/useAttendanceSync';
 import { toast } from 'sonner';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export interface StudentManagementProps {
   students: Array<{ id: string; name: string }>;
@@ -53,19 +54,19 @@ const StudentManagement: React.FC<StudentManagementProps> = ({ students }) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row">
         <Input
           type="text"
           value={newStudentName}
           onChange={(e) => setNewStudentName(e.target.value)}
           placeholder="Имя студента"
-          className="flex-1"
+          className="flex-1 h-12 text-base"
         />
         <Select
           value={selectedPosition}
           onValueChange={setSelectedPosition}
         >
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px] h-12">
             <SelectValue placeholder="Выберите позицию" />
           </SelectTrigger>
           <SelectContent>
@@ -77,25 +78,27 @@ const StudentManagement: React.FC<StudentManagementProps> = ({ students }) => {
             <SelectItem value="end">В конец списка</SelectItem>
           </SelectContent>
         </Select>
-        <Button onClick={handleAddStudent}>
+        <Button onClick={handleAddStudent} className="h-12">
           Добавить
         </Button>
       </div>
 
-      <div className="space-y-2">
-        {students.map((student, index) => (
-          <div key={student.id} className="flex items-center justify-between p-2 bg-white rounded-lg shadow">
-            <span>{index + 1}. {student.name}</span>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => handleRemoveStudent(student.id)}
-            >
-              Удалить
-            </Button>
-          </div>
-        ))}
-      </div>
+      <ScrollArea className="h-[400px] rounded-md border p-4">
+        <div className="space-y-2">
+          {students.map((student, index) => (
+            <div key={student.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <span className="text-base">{index + 1}. {student.name}</span>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => handleRemoveStudent(student.id)}
+              >
+                Удалить
+              </Button>
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
     </div>
   );
 };
