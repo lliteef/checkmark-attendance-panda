@@ -10,6 +10,7 @@ import { CalendarCog, CalendarPlus, Users } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Calendar } from "@/components/ui/calendar";
 import StudentManagement from './StudentManagement';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const AttendanceTable = () => {
   const { students, attendance, updateAttendance, updateAbsenceReason } = useAttendanceSync();
@@ -19,6 +20,7 @@ const AttendanceTable = () => {
     return `2024-${String(today.getMonth() + 1).padStart(2, '0')}`;
   });
   const [calendarDate, setCalendarDate] = useState<Date>();
+  const isMobile = useIsMobile();
 
   const dates = getDatesForView(viewType, selectedMonth);
   const months = getLastTwelveMonths();
@@ -110,77 +112,79 @@ const AttendanceTable = () => {
                 </SelectContent>
               </Select>
             )}
-            <div className="flex space-x-2">
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" className="gap-2">
-                    <CalendarCog className="h-4 w-4" />
-                    Редактировать календарь
-                  </Button>
-                </SheetTrigger>
-                <SheetContent>
-                  <SheetHeader>
-                    <SheetTitle>Настройки календаря</SheetTitle>
-                  </SheetHeader>
-                  <div className="py-6">
-                    <div className="space-y-4">
-                      <div>
-                        <h3 className="text-sm font-medium mb-2">Рабочие дни</h3>
-                        <div className="grid grid-cols-2 gap-4">
-                          {['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница'].map((day) => (
-                            <div key={day} className="flex items-center space-x-2">
-                              <Checkbox id={day} defaultChecked />
-                              <label htmlFor={day} className="text-sm">
-                                {day}
-                              </label>
-                            </div>
-                          ))}
+            {!isMobile && (
+              <div className="flex space-x-2">
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" className="gap-2">
+                      <CalendarCog className="h-4 w-4" />
+                      Редактировать календарь
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent>
+                    <SheetHeader>
+                      <SheetTitle>Настройки календаря</SheetTitle>
+                    </SheetHeader>
+                    <div className="py-6">
+                      <div className="space-y-4">
+                        <div>
+                          <h3 className="text-sm font-medium mb-2">Рабочие дни</h3>
+                          <div className="grid grid-cols-2 gap-4">
+                            {['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница'].map((day) => (
+                              <div key={day} className="flex items-center space-x-2">
+                                <Checkbox id={day} defaultChecked />
+                                <label htmlFor={day} className="text-sm">
+                                  {day}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-medium mb-2">Добавить день в календарь</h3>
-                        <div className="space-y-4">
-                          <Calendar
-                            mode="single"
-                            selected={calendarDate}
-                            onSelect={setCalendarDate}
-                            className="rounded-md border"
-                          />
-                          <Button 
-                            variant="outline" 
-                            className="w-full gap-2"
-                            onClick={() => handleAddSpecialDay(calendarDate)}
-                            disabled={!calendarDate}
-                          >
-                            <CalendarPlus className="h-4 w-4" />
-                            Добавить выбранный день
-                          </Button>
+                        <div>
+                          <h3 className="text-sm font-medium mb-2">Добавить день в календарь</h3>
+                          <div className="space-y-4">
+                            <Calendar
+                              mode="single"
+                              selected={calendarDate}
+                              onSelect={setCalendarDate}
+                              className="rounded-md border"
+                            />
+                            <Button 
+                              variant="outline" 
+                              className="w-full gap-2"
+                              onClick={() => handleAddSpecialDay(calendarDate)}
+                              disabled={!calendarDate}
+                            >
+                              <CalendarPlus className="h-4 w-4" />
+                              Добавить выбранный день
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </SheetContent>
-              </Sheet>
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" className="gap-2">
-                    <Users className="h-4 w-4" />
-                    Управление студентами
-                  </Button>
-                </SheetTrigger>
-                <SheetContent>
-                  <SheetHeader>
-                    <SheetTitle>Управление списком студентов</SheetTitle>
-                  </SheetHeader>
-                  <div className="py-6">
-                    <StudentManagement students={students} />
-                  </div>
-                </SheetContent>
-              </Sheet>
-              <Button className="flex-1 sm:flex-none" variant="outline" onClick={handleExport}>
-                Экспорт
-              </Button>
-            </div>
+                  </SheetContent>
+                </Sheet>
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" className="gap-2">
+                      <Users className="h-4 w-4" />
+                      Управление студентами
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent>
+                    <SheetHeader>
+                      <SheetTitle>Управление списком студентов</SheetTitle>
+                    </SheetHeader>
+                    <div className="py-6">
+                      <StudentManagement students={students} />
+                    </div>
+                  </SheetContent>
+                </Sheet>
+                <Button className="flex-1 sm:flex-none" variant="outline" onClick={handleExport}>
+                  Экспорт
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
