@@ -26,7 +26,7 @@ export const useAttendanceSync = () => {
         const { data: studentsData, error: studentsError } = await supabase
           .from('students')
           .select('*')
-          .order('name');
+          .order('position');
 
         if (studentsError) throw studentsError;
 
@@ -73,7 +73,7 @@ export const useAttendanceSync = () => {
           supabase
             .from('students')
             .select('*')
-            .order('name')
+            .order('position')
             .then(({ data, error }) => {
               if (error) {
                 console.error('Error refreshing students:', error);
@@ -84,7 +84,6 @@ export const useAttendanceSync = () => {
                 name: s.name
               }));
               setStudents(transformedStudents);
-              toast.success('Список студентов обновлен');
             });
         }
       )
@@ -116,7 +115,6 @@ export const useAttendanceSync = () => {
                 };
               });
               setAttendance(attendanceMap);
-              toast.success('Данные посещаемости обновлены');
             });
         }
       )
@@ -128,16 +126,30 @@ export const useAttendanceSync = () => {
     };
   }, []);
 
-  const addStudent = async (name: string) => {
+  const addStudent = async (name: string, position: number = students.length) => {
     try {
+      // Update positions for existing students
+      const updates = students.slice(position).map((student, index) => ({
+        id: student.id,
+        position: position + index + 1
+      }));
+
+      if (updates.length > 0) {
+        const { error: updateError } = await supabase
+          .from('students')
+          .upsert(updates);
+
+        if (updateError) throw updateError;
+      }
+
+      // Add new student
       const { data, error } = await supabase
         .from('students')
-        .insert([{ name }])
+        .insert([{ name, position }])
         .select()
         .single();
 
       if (error) throw error;
-      toast.success('Студент добавлен');
       return data;
     } catch (error) {
       console.error('Error adding student:', error);
@@ -154,7 +166,21 @@ export const useAttendanceSync = () => {
         .eq('id', studentId);
 
       if (error) throw error;
-      toast.success('Студент удален');
+
+      // Update positions for remaining students
+      const remainingStudents = students.filter(s => s.id !== studentId);
+      const updates = remainingStudents.map((student, index) => ({
+        id: student.id,
+        position: index
+      }));
+
+      if (updates.length > 0) {
+        const { error: updateError } = await supabase
+          .from('students')
+          .upsert(updates);
+
+        if (updateError) throw updateError;
+      }
     } catch (error) {
       console.error('Error removing student:', error);
       toast.error('Ошибка при удалении студента');
@@ -176,7 +202,6 @@ export const useAttendanceSync = () => {
         });
 
       if (error) throw error;
-      toast.success(isPresent ? 'Присутствие отмечено' : 'Отсутствие отмечено');
     } catch (error) {
       console.error('Error updating attendance:', error);
       toast.error('Ошибка при обновлении посещаемости');

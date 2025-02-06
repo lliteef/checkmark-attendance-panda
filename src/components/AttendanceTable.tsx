@@ -6,12 +6,13 @@ import { ViewType, getDatesForView, getLastTwelveMonths, exportToExcel } from "@
 import { useAttendanceSync } from '@/hooks/useAttendanceSync';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { CalendarCog, CalendarPlus } from "lucide-react";
+import { CalendarCog, CalendarPlus, Users } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Calendar } from "@/components/ui/calendar";
+import { StudentManagement } from './StudentManagement';
 
 const AttendanceTable = () => {
-  const { students, attendance, addStudent, removeStudent, updateAttendance, updateAbsenceReason } = useAttendanceSync();
+  const { students, attendance, updateAttendance, updateAbsenceReason } = useAttendanceSync();
   const [viewType, setViewType] = useState<ViewType>("day");
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const today = new Date();
@@ -50,17 +51,6 @@ const AttendanceTable = () => {
     } catch (error) {
       toast.error('Ошибка при обновлении причины отсутствия');
     }
-  };
-
-  const handleAddStudent = () => {
-    const name = prompt('Введите имя студента:');
-    if (name) {
-      addStudent(name);
-    }
-  };
-
-  const handleRemoveStudent = (studentId: string) => {
-    removeStudent(studentId);
   };
 
   const handleExport = () => {
@@ -171,11 +161,24 @@ const AttendanceTable = () => {
                   </div>
                 </SheetContent>
               </Sheet>
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" className="gap-2">
+                    <Users className="h-4 w-4" />
+                    Управление студентами
+                  </Button>
+                </SheetTrigger>
+                <SheetContent>
+                  <SheetHeader>
+                    <SheetTitle>Управление списком студентов</SheetTitle>
+                  </SheetHeader>
+                  <div className="py-6">
+                    <StudentManagement students={students} />
+                  </div>
+                </SheetContent>
+              </Sheet>
               <Button className="flex-1 sm:flex-none" variant="outline" onClick={handleExport}>
                 Экспорт
-              </Button>
-              <Button className="flex-1 sm:flex-none" variant="outline" onClick={handleAddStudent}>
-                Добавить студента
               </Button>
             </div>
           </div>
@@ -205,9 +208,6 @@ const AttendanceTable = () => {
                           {new Date(date).toLocaleDateString('ru-RU', { day: 'numeric' })}
                         </th>
                       ))}
-                      <th className="border-b px-4 py-3 text-center text-sm font-semibold text-slate-800 min-w-[80px]">
-                        Действия
-                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -229,14 +229,6 @@ const AttendanceTable = () => {
                             </div>
                           </td>
                         ))}
-                        <td className="border-b px-4 py-3 text-center">
-                          <button
-                            onClick={() => handleRemoveStudent(student.id)}
-                            className="text-red-500 hover:text-red-700 transition-colors"
-                          >
-                            Удалить
-                          </button>
-                        </td>
                       </tr>
                     ))}
                   </tbody>
