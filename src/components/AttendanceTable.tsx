@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { ViewType, getDatesForView, getLastTwelveMonths, exportToExcel } from "@/utils/attendanceUtils";
+import { ViewType, getDatesForView, getLastTwelveMonths, exportToExcel, getDayOfWeekName } from "@/utils/attendanceUtils";
 import { useAttendanceSync } from '@/hooks/useAttendanceSync';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -12,14 +12,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Calendar } from "@/components/ui/calendar";
 import StudentManagement from './StudentManagement';
 import { useIsMobile } from '@/hooks/use-mobile';
-
-// Функция для получения названия дня недели
-const getDayOfWeekName = (dateString: string): string => {
-  const date = new Date(dateString);
-  const dayOfWeek = date.getDay();
-  const daysOfWeek = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
-  return daysOfWeek[dayOfWeek];
-};
 
 const AttendanceTable = () => {
   const { students, attendance, updateAttendance, updateAbsenceReason } = useAttendanceSync();
@@ -216,12 +208,16 @@ const AttendanceTable = () => {
                       <th className="border-b px-4 py-3 text-left text-sm font-semibold text-slate-800 sticky left-0 bg-gray-50 z-10 min-w-[150px]">
                         Фамилия Имя
                       </th>
-                      {dates.map(date => (
-                        <th key={date} className="border-b px-3 py-3 text-center text-sm font-semibold text-slate-800 min-w-[60px]">
-                          <div>{new Date(date).toLocaleDateString('ru-RU', { day: 'numeric' })}</div>
-                          <div className="text-xs text-gray-500">{getDayOfWeekName(date)}</div>
-                        </th>
-                      ))}
+                      {dates.map(date => {
+                        const day = new Date(date).getDate();
+                        const dayName = getDayOfWeekName(date);
+                        return (
+                          <th key={date} className="border-b px-3 py-3 text-center text-sm font-semibold text-slate-800 min-w-[60px]">
+                            <div>{day}</div>
+                            <div className="text-xs text-gray-500">{dayName}</div>
+                          </th>
+                        );
+                      })}
                     </tr>
                   </thead>
                   <tbody>

@@ -50,7 +50,7 @@ export const getDatesForView = (viewType: ViewType, selectedMonth: string): stri
       
       while (currentDate <= lastDayOfMonth) {
         const dayOfWeek = currentDate.getDay();
-        // We include only Monday (1) to Friday (5)
+        // Include only Monday (1) to Friday (5)
         if (dayOfWeek >= 1 && dayOfWeek <= 5) {
           dates.push(new Date(currentDate).toISOString().split('T')[0]);
         }
@@ -61,6 +61,14 @@ export const getDatesForView = (viewType: ViewType, selectedMonth: string): stri
     default:
       return [];
   }
+};
+
+// Convert day numbers to Russian day abbreviations
+export const getDayOfWeekName = (dateString: string): string => {
+  const date = new Date(dateString);
+  const dayOfWeek = date.getDay();
+  const daysOfWeek = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+  return daysOfWeek[dayOfWeek];
 };
 
 export const getLastTwelveMonths = () => {
