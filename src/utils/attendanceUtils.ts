@@ -1,3 +1,4 @@
+
 import * as XLSX from 'xlsx';
 
 export type ViewType = "day" | "week" | "month";
@@ -30,6 +31,7 @@ export const getDatesForView = (viewType: ViewType, selectedMonth: string): stri
     case "week": {
       const currentDate = new Date();
       const currentDay = currentDate.getDay();
+      // Adjust to start from Monday (1) to Friday (5)
       const diff = currentDay === 0 ? 6 : currentDay - 1;
       const monday = new Date(currentDate);
       monday.setDate(currentDate.getDate() - diff);
@@ -48,7 +50,8 @@ export const getDatesForView = (viewType: ViewType, selectedMonth: string): stri
       
       while (currentDate <= lastDayOfMonth) {
         const dayOfWeek = currentDate.getDay();
-        if (dayOfWeek >= 1 && dayOfWeek <= 5) { // Monday = 1, Friday = 5
+        // We include only Monday (1) to Friday (5)
+        if (dayOfWeek >= 1 && dayOfWeek <= 5) {
           dates.push(new Date(currentDate).toISOString().split('T')[0]);
         }
         currentDate.setDate(currentDate.getDate() + 1);

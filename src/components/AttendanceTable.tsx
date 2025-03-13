@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,12 +13,20 @@ import { Calendar } from "@/components/ui/calendar";
 import StudentManagement from './StudentManagement';
 import { useIsMobile } from '@/hooks/use-mobile';
 
+// Функция для получения названия дня недели
+const getDayOfWeekName = (dateString: string): string => {
+  const date = new Date(dateString);
+  const dayOfWeek = date.getDay();
+  const daysOfWeek = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+  return daysOfWeek[dayOfWeek];
+};
+
 const AttendanceTable = () => {
   const { students, attendance, updateAttendance, updateAbsenceReason } = useAttendanceSync();
   const [viewType, setViewType] = useState<ViewType>("day");
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const today = new Date();
-    return `2024-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
   });
   const [calendarDate, setCalendarDate] = useState<Date>();
   const isMobile = useIsMobile();
@@ -28,7 +37,7 @@ const AttendanceTable = () => {
   const isWeekend = (date: string): boolean => {
     const dateObj = new Date(date);
     const day = dateObj.getDay();
-    return day === 0 || day === 6;
+    return day === 0 || day === 6; // 0 = воскресенье, 6 = суббота
   };
 
   const getNextMonday = (date: string): string => {
@@ -209,7 +218,8 @@ const AttendanceTable = () => {
                       </th>
                       {dates.map(date => (
                         <th key={date} className="border-b px-3 py-3 text-center text-sm font-semibold text-slate-800 min-w-[60px]">
-                          {new Date(date).toLocaleDateString('ru-RU', { day: 'numeric' })}
+                          <div>{new Date(date).toLocaleDateString('ru-RU', { day: 'numeric' })}</div>
+                          <div className="text-xs text-gray-500">{getDayOfWeekName(date)}</div>
                         </th>
                       ))}
                     </tr>
