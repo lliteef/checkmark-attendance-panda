@@ -1,3 +1,4 @@
+
 import * as XLSX from 'xlsx';
 
 export type ViewType = "day" | "week" | "month";
@@ -16,6 +17,32 @@ const getNextMonday = (date: Date): string => {
     day: 'numeric',
     month: 'long'
   });
+};
+
+// Добавляем время начала занятий по умолчанию
+export const getDefaultLessonStartTime = (): string => {
+  return "08:30"; // Время по умолчанию - 8:30
+};
+
+// Проверка, является ли студент опоздавшим
+export const isLate = (
+  studentId: string, 
+  date: string, 
+  attendance: Record<string, any>, 
+  startTime: string | null
+): boolean => {
+  // Если время не задано или студент отмечен отсутствующим с причиной, то не считаем опозданием
+  if (!startTime || !attendance[studentId]) return false;
+  
+  const record = attendance[studentId][date];
+  
+  // Если студент не отмечен вообще или отмечен отсутствующим с причиной
+  if (!record || (record.absence_reason && !record.is_present)) {
+    return false;
+  }
+  
+  // Если студент не отмечен присутствующим и нет причины отсутствия
+  return !record.is_present && !record.absence_reason;
 };
 
 export const getDatesForView = (viewType: ViewType, selectedMonth: string): string[] => {
