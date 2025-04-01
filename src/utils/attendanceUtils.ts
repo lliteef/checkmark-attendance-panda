@@ -1,4 +1,3 @@
-
 import * as XLSX from 'xlsx';
 
 export type ViewType = "day" | "week" | "month";
@@ -51,10 +50,9 @@ export const getDatesForView = (viewType: ViewType, selectedMonth: string): stri
     }
     case "month": {
       const dates = [];
-      const currentDate = new Date(firstDayOfMonth);
+      const currentDate = new Date(year, month - 1, 1); // Start from the 1st day of the selected month
       
-      while (currentDate <= lastDayOfMonth) {
-        // Include all days, including weekends
+      while (currentDate.getMonth() === month - 1) { // Continue until we reach the next month
         dates.push(new Date(currentDate).toISOString().split('T')[0]);
         currentDate.setDate(currentDate.getDate() + 1);
       }
@@ -65,7 +63,6 @@ export const getDatesForView = (viewType: ViewType, selectedMonth: string): stri
   }
 };
 
-// Convert day numbers to Russian day abbreviations
 export const getDayOfWeekName = (dateString: string): string => {
   const date = new Date(dateString);
   const dayOfWeek = date.getDay();
