@@ -8,7 +8,8 @@ export const isWeekend = (date: Date): boolean => {
   return day === 0 || day === 6; // 0 = воскресенье, 6 = суббота
 };
 
-const getNextMonday = (date: Date): string => {
+// Now we export this function
+export const getNextMonday = (date: Date): string => {
   const nextMonday = new Date(date);
   while (nextMonday.getDay() !== 1) {
     nextMonday.setDate(nextMonday.getDate() + 1);
