@@ -1,9 +1,8 @@
-
 import * as XLSX from 'xlsx';
 
 export type ViewType = "day" | "week" | "month";
 
-const isWeekend = (date: Date): boolean => {
+export const isWeekend = (date: Date): boolean => {
   const day = date.getDay();
   return day === 0 || day === 6; // 0 = воскресенье, 6 = суббота
 };
@@ -49,11 +48,8 @@ export const getDatesForView = (viewType: ViewType, selectedMonth: string): stri
       const currentDate = new Date(firstDayOfMonth);
       
       while (currentDate <= lastDayOfMonth) {
-        const dayOfWeek = currentDate.getDay();
-        // Include only Monday (1) to Friday (5)
-        if (dayOfWeek >= 1 && dayOfWeek <= 5) {
-          dates.push(new Date(currentDate).toISOString().split('T')[0]);
-        }
+        // Include all days, including weekends
+        dates.push(new Date(currentDate).toISOString().split('T')[0]);
         currentDate.setDate(currentDate.getDate() + 1);
       }
       return dates;

@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { ViewType, getDatesForView, getLastTwelveMonths, exportToExcel, getDayOfWeekName } from "@/utils/attendanceUtils";
+import { ViewType, getDatesForView, getLastTwelveMonths, exportToExcel, getDayOfWeekName, isWeekend } from "@/utils/attendanceUtils";
 import { useAttendanceSync } from '@/hooks/useAttendanceSync';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -25,12 +25,6 @@ const AttendanceTable = () => {
 
   const dates = getDatesForView(viewType, selectedMonth);
   const months = getLastTwelveMonths();
-
-  const isWeekend = (date: string): boolean => {
-    const dateObj = new Date(date);
-    const day = dateObj.getDay();
-    return day === 0 || day === 6; // 0 = воскресенье, 6 = суббота
-  };
 
   const getNextMonday = (date: string): string => {
     const dateObj = new Date(date);
@@ -75,7 +69,7 @@ const AttendanceTable = () => {
   }, [students, attendance, dates, viewType]);
 
   const currentDate = dates[0];
-  const isCurrentDateWeekend = currentDate && isWeekend(currentDate);
+  const isCurrentDateWeekend = currentDate && isWeekend(new Date(currentDate));
 
   return (
     <div className="w-full">
@@ -209,12 +203,22 @@ const AttendanceTable = () => {
                         Фамилия Имя
                       </th>
                       {dates.map(date => {
-                        const day = new Date(date).getDate();
+                        const dateObj = new Date(date);
+                        const day = dateObj.getDate();
                         const dayName = getDayOfWeekName(date);
+                        const isWeekendDay = isWeekend(dateObj);
+                        
                         return (
-                          <th key={date} className="border-b px-3 py-3 text-center text-sm font-semibold text-slate-800 min-w-[60px]">
+                          <th 
+                            key={date} 
+                            className={`border-b px-3 py-3 text-center text-sm font-semibold min-w-[60px] ${
+                              isWeekendDay ? 'bg-gray-100 text-gray-400' : 'text-slate-800'
+                            }`}
+                          >
                             <div>{day}</div>
-                            <div className="text-xs text-gray-500">{dayName}</div>
+                            <div className={`text-xs ${isWeekendDay ? 'text-gray-400' : 'text-gray-500'}`}>
+                              {dayName}
+                            </div>
                           </th>
                         );
                       })}
@@ -226,19 +230,33 @@ const AttendanceTable = () => {
                         <td className="border-b px-4 py-3 text-sm text-slate-800 sticky left-0 bg-white z-10 whitespace-nowrap">
                           {student.name}
                         </td>
-                        {dates.map(date => (
-                          <td key={date} className="border-b px-3 py-3 text-center">
-                            <div className="flex justify-center">
-                              <Checkbox
-                                checked={attendance[student.id]?.[date]?.is_present || false}
-                                onCheckedChange={(checked) => 
-                                  handleAttendanceChange(student.id, date, checked as boolean)
-                                }
-                                className="data-[state=checked]:animate-checkbox-check"
-                              />
-                            </div>
-                          </td>
-                        ))}
+                        {dates.map(date => {
+                          const dateObj = new Date(date);
+                          const isWeekendDay = isWeekend(dateObj);
+                          
+                          return (
+                            <td 
+                              key={date} 
+                              className={`border-b px-3 py-3 text-center ${
+                                isWeekendDay ? 'bg-gray-100' : ''
+                              }`}
+                            >
+                              {!isWeekendDay ? (
+                                <div className="flex justify-center">
+                                  <Checkbox
+                                    checked={attendance[student.id]?.[date]?.is_present || false}
+                                    onCheckedChange={(checked) => 
+                                      handleAttendanceChange(student.id, date, checked as boolean)
+                                    }
+                                    className="data-[state=checked]:animate-checkbox-check"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="text-xs text-gray-400">выходной</div>
+                              )}
+                            </td>
+                          );
+                        })}
                       </tr>
                     ))}
                   </tbody>
