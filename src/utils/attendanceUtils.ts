@@ -1,3 +1,4 @@
+
 import * as XLSX from 'xlsx';
 
 export type ViewType = "day" | "week" | "month";
@@ -21,7 +22,12 @@ const getNextMonday = (date: Date): string => {
 export const getDatesForView = (viewType: ViewType, selectedMonth: string): string[] => {
   const today = new Date();
   const [year, month] = selectedMonth.split('-').map(Number);
+  
+  // Create the first day of the selected month
   const firstDayOfMonth = new Date(year, month - 1, 1);
+  
+  // Create the last day of the selected month by getting day 0 of the next month
+  // This correctly gives us the last day of the current month
   const lastDayOfMonth = new Date(year, month, 0);
 
   switch (viewType) {
