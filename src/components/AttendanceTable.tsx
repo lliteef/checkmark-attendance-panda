@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
+
+import React, { useState, useMemo, useEffect } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { 
   ViewType, getDatesForView, getLastTwelveMonths, exportToExcel, getDayOfWeekName, 
-  isWeekend, getNextMonday, isLate 
+  isWeekend, getNextMonday, isLateSync 
 } from "@/utils/attendanceUtils";
 import { useAttendanceSync } from '@/hooks/useAttendanceSync';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -15,6 +16,7 @@ import { Calendar } from "@/components/ui/calendar";
 import StudentManagement from './StudentManagement';
 import { useIsMobile } from '@/hooks/use-mobile';
 import LessonTimeSelector from './LessonTimeSelector';
+import { supabase } from "@/integrations/supabase/client";
 
 const AttendanceTable = () => {
   const { students, attendance, updateAttendance, updateAbsenceReason } = useAttendanceSync();
@@ -25,10 +27,36 @@ const AttendanceTable = () => {
   });
   const [calendarDate, setCalendarDate] = useState<Date>();
   const [lessonStartTime, setLessonStartTime] = useState<string | null>(null);
+  const [lateStudentIds, setLateStudentIds] = useState<string[]>([]);
   const isMobile = useIsMobile();
 
   const dates = getDatesForView(viewType, selectedMonth);
   const months = getLastTwelveMonths();
+
+  // Загрузка списка опоздавших студентов из базы данных
+  useEffect(() => {
+    const fetchLateStudents = async () => {
+      if (viewType !== 'day' || dates.length === 0) return;
+      
+      try {
+        const today = dates[0];
+        
+        const { data, error } = await supabase
+          .from('late_students')
+          .select('student_id')
+          .eq('date', today);
+        
+        if (error) throw error;
+        
+        const lateIds = data.map(item => item.student_id);
+        setLateStudentIds(lateIds);
+      } catch (error) {
+        console.error('Ошибка при загрузке списка опоздавших:', error);
+      }
+    };
+    
+    fetchLateStudents();
+  }, [viewType, dates]);
 
   const handleAttendanceChange = (studentId: string, date: string, checked: boolean) => {
     updateAttendance(studentId, date, checked);
@@ -54,6 +82,10 @@ const AttendanceTable = () => {
     }
   };
 
+  const handleTimeSelected = (time: string) => {
+    setLessonStartTime(time);
+  };
+
   const missingStudents = useMemo(() => {
     if (viewType !== 'day' || dates.length === 0) return [];
     
@@ -62,17 +94,52 @@ const AttendanceTable = () => {
   }, [students, attendance, dates, viewType]);
 
   const lateStudents = useMemo(() => {
-    if (viewType !== 'day' || dates.length === 0 || !lessonStartTime) return [];
+    if (viewType !== 'day' || dates.length === 0) return [];
 
     const currentDate = dates[0];
     return students.filter(student => 
-      isLate(student.id, currentDate, attendance, lessonStartTime)
+      isLateSync(student.id, currentDate, attendance, lateStudentIds)
     );
-  }, [students, attendance, dates, viewType, lessonStartTime]);
+  }, [students, attendance, dates, viewType, lateStudentIds]);
 
-  const handleTimeSelected = (time: string) => {
-    setLessonStartTime(time);
-  };
+  // Подписываемся на обновления таблицы late_students в режиме реального времени
+  useEffect(() => {
+    if (viewType !== 'day' || dates.length === 0) return;
+    
+    const today = dates[0];
+    
+    const channel = supabase
+      .channel('late_students_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'late_students', filter: `date=eq.${today}` },
+        (payload) => {
+          // Обновляем список опоздавших при изменениях в базе данных
+          const fetchLatestLateStudents = async () => {
+            try {
+              const { data, error } = await supabase
+                .from('late_students')
+                .select('student_id')
+                .eq('date', today);
+              
+              if (error) throw error;
+              
+              const lateIds = data.map(item => item.student_id);
+              setLateStudentIds(lateIds);
+            } catch (error) {
+              console.error('Ошибка при загрузке обновленного списка опоздавших:', error);
+            }
+          };
+          
+          fetchLatestLateStudents();
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [viewType, dates]);
 
   const currentDate = dates[0];
   const isCurrentDateWeekend = currentDate && isWeekend(new Date(currentDate));
@@ -278,34 +345,36 @@ const AttendanceTable = () => {
 
             {viewType === 'day' && (
               <>
-                {lateStudents.length > 0 && (
+                {lateStudentIds.length > 0 && (
                   <Card className="mt-6 border-yellow-300">
                     <CardHeader className="bg-yellow-50 border-b border-yellow-200">
                       <CardTitle className="text-lg font-semibold text-yellow-800 flex items-center gap-2">
                         <AlertTriangle className="h-5 w-5 text-yellow-600" />
-                        Опаздывающие студенты ({lateStudents.length})
+                        Опаздывающие студенты ({lateStudentIds.length})
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="bg-yellow-50/30">
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {lateStudents.map(student => (
-                          <div key={student.id} className="flex items-center justify-between p-3 bg-white border border-yellow-200 rounded">
-                            <div className="text-sm text-slate-800">{student.name}</div>
-                            <Select
-                              value={attendance[student.id]?.[dates[0]]?.absence_reason || ''}
-                              onValueChange={(value) => handleAbsenceReasonChange(student.id, dates[0], value)}
-                            >
-                              <SelectTrigger className="w-[60px] h-8">
-                                <SelectValue placeholder="?" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="б">б</SelectItem>
-                                <SelectItem value="н">н</SelectItem>
-                                <SelectItem value="п">п</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        ))}
+                        {students
+                          .filter(student => lateStudentIds.includes(student.id))
+                          .map(student => (
+                            <div key={student.id} className="flex items-center justify-between p-3 bg-white border border-yellow-200 rounded">
+                              <div className="text-sm text-slate-800">{student.name}</div>
+                              <Select
+                                value={attendance[student.id]?.[dates[0]]?.absence_reason || ''}
+                                onValueChange={(value) => handleAbsenceReasonChange(student.id, dates[0], value)}
+                              >
+                                <SelectTrigger className="w-[60px] h-8">
+                                  <SelectValue placeholder="?" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="б">б</SelectItem>
+                                  <SelectItem value="н">н</SelectItem>
+                                  <SelectItem value="п">п</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          ))}
                       </div>
                     </CardContent>
                   </Card>

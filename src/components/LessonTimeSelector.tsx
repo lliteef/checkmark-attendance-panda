@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock } from "lucide-react";
 import { getDefaultLessonStartTime } from "@/utils/attendanceUtils";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface LessonTimeSelectorProps {
   onTimeSelected: (time: string) => void;
@@ -18,43 +20,87 @@ const LessonTimeSelector: React.FC<LessonTimeSelectorProps> = ({ onTimeSelected,
   const [isFirstTime, setIsFirstTime] = useState<boolean>(true);
 
   useEffect(() => {
-    // Проверяем, не выбиралось ли уже время сегодня
-    const today = new Date().toISOString().split('T')[0];
-    const savedTime = localStorage.getItem(`lesson_start_time_${today}`);
+    // Проверяем, не выбиралось ли уже время сегодня в базе данных
+    const fetchLessonTime = async () => {
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        
+        const { data, error } = await supabase
+          .from('lesson_times')
+          .select('start_time')
+          .eq('date', today)
+          .maybeSingle();
+        
+        if (error) throw error;
+        
+        if (data) {
+          setLessonTime(data.start_time);
+          setIsFirstTime(false);
+          onTimeSelected(data.start_time);
+        }
+      } catch (error) {
+        console.error('Ошибка при получении времени начала занятий:', error);
+        toast.error('Не удалось загрузить время начала занятий');
+      }
+    };
     
-    if (savedTime) {
-      setLessonTime(savedTime);
-      setIsFirstTime(false);
-      onTimeSelected(savedTime);
-    }
+    fetchLessonTime();
   }, [onTimeSelected]);
 
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLessonTime(e.target.value);
   };
 
-  const handleTimeSubmit = () => {
-    // Сохраняем выбранное время для текущего дня
-    const today = new Date().toISOString().split('T')[0];
-    localStorage.setItem(`lesson_start_time_${today}`, lessonTime);
-    
-    // При подтверждении времени начала занятий, отмечаем всех неотмеченных студентов как опоздавших
-    const lateStudents: string[] = [];
-    
-    students.forEach(student => {
-      const record = attendance[student.id]?.[today];
-      // Если студент не отмечен присутствующим и у него нет причины отсутствия,
-      // добавляем его в список опоздавших
-      if (!record?.is_present && !record?.absence_reason) {
-        lateStudents.push(student.id);
+  const handleTimeSubmit = async () => {
+    try {
+      // Получаем текущую дату в формате YYYY-MM-DD
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Сохраняем выбранное время для текущего дня в базе данных
+      const { error: timeError } = await supabase
+        .from('lesson_times')
+        .upsert({ 
+          date: today, 
+          start_time: lessonTime 
+        }, { 
+          onConflict: 'date' 
+        });
+      
+      if (timeError) throw timeError;
+      
+      // При подтверждении времени начала занятий, отмечаем всех неотмеченных студентов как опоздавших
+      const lateStudentRows = [];
+      
+      students.forEach(student => {
+        const record = attendance[student.id]?.[today];
+        // Если студент не отмечен присутствующим и у него нет причины отсутствия,
+        // добавляем его в список опоздавших
+        if (!record?.is_present && !record?.absence_reason) {
+          lateStudentRows.push({
+            student_id: student.id,
+            date: today
+          });
+        }
+      });
+      
+      // Сохраняем список опоздавших в базе данных
+      if (lateStudentRows.length > 0) {
+        const { error: lateError } = await supabase
+          .from('late_students')
+          .upsert(lateStudentRows, { 
+            onConflict: 'student_id,date' 
+          });
+        
+        if (lateError) throw lateError;
       }
-    });
-    
-    // Сохраняем список опоздавших в localStorage
-    localStorage.setItem(`late_students_${today}`, JSON.stringify(lateStudents));
-    
-    onTimeSelected(lessonTime);
-    setIsFirstTime(false);
+      
+      onTimeSelected(lessonTime);
+      setIsFirstTime(false);
+      toast.success('Время начала занятий сохранено');
+    } catch (error) {
+      console.error('Ошибка при сохранении данных:', error);
+      toast.error('Не удалось сохранить время начала занятий');
+    }
   };
 
   if (!isFirstTime) return null;

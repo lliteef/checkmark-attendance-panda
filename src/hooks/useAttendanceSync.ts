@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -123,9 +124,36 @@ export const useAttendanceSync = () => {
       )
       .subscribe();
 
+    // Добавляем подписку на изменения в таблицах lesson_times и late_students
+    const lateStudentsChannel = supabase
+      .channel('late_students_channel')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'late_students' },
+        (payload) => {
+          console.log('Late students change received:', payload);
+          // Обновление данных произойдет в компоненте AttendanceTable
+        }
+      )
+      .subscribe();
+
+    const lessonTimesChannel = supabase
+      .channel('lesson_times_channel')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'lesson_times' },
+        (payload) => {
+          console.log('Lesson times change received:', payload);
+          // Обновление данных произойдет в компоненте LessonTimeSelector
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(studentsChannel);
       supabase.removeChannel(attendanceChannel);
+      supabase.removeChannel(lateStudentsChannel);
+      supabase.removeChannel(lessonTimesChannel);
     };
   }, []);
 

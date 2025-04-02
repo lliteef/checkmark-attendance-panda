@@ -44,6 +44,56 @@ export type Database = {
           },
         ]
       }
+      late_students: {
+        Row: {
+          created_at: string | null
+          date: string
+          id: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          id?: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "late_students_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lesson_times: {
+        Row: {
+          created_at: string | null
+          date: string
+          id: string
+          start_time: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          id?: string
+          start_time: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          id?: string
+          start_time?: string
+        }
+        Relationships: []
+      }
       students: {
         Row: {
           created_at: string

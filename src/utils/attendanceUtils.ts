@@ -1,4 +1,6 @@
+
 import * as XLSX from 'xlsx';
+import { supabase } from "@/integrations/supabase/client";
 
 export type ViewType = "day" | "week" | "month";
 
@@ -25,41 +27,74 @@ export const getDefaultLessonStartTime = (): string => {
 };
 
 // Проверка, является ли студент опоздавшим
-export const isLate = (
+export const isLate = async (
   studentId: string, 
   date: string, 
   attendance: Record<string, any>, 
   startTime: string | null
+): Promise<boolean> => {
+  try {
+    // Проверяем, отмечен ли студент как опоздавший в базе данных
+    const { data: lateData, error: lateError } = await supabase
+      .from('late_students')
+      .select('id')
+      .eq('student_id', studentId)
+      .eq('date', date)
+      .maybeSingle();
+    
+    if (lateError) throw lateError;
+    
+    // Если студент уже в списке опоздавших в базе данных, то считаем его опоздавшим
+    if (lateData) {
+      return true;
+    }
+    
+    // Если время не задано или записи для студента нет, то не считаем опозданием
+    if (!startTime || !attendance[studentId]) return false;
+    
+    const record = attendance[studentId][date];
+    
+    // Если записи нет вообще, и студент не отмечен как опоздавший ранее
+    if (!record) return false;
+    
+    // Если у студента есть причина отсутствия (б, н, п), то он не опоздал, а отсутствует по причине
+    if (record.absence_reason) return false;
+    
+    // Если студент не отмечен присутствующим, значит опоздал
+    if (!record.is_present) {
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error("Ошибка при проверке опоздания:", error);
+    return false;
+  }
+};
+
+// Проверка синхронно, без обращения к базе данных
+// Используется для быстрого отображения в интерфейсе
+export const isLateSync = (
+  studentId: string,
+  date: string,
+  attendance: Record<string, any>,
+  knownLateStudents: string[]
 ): boolean => {
-  // Проверяем, отмечен ли студент как опоздавший сегодня
-  const today = new Date().toISOString().split('T')[0];
-  const lateStudentsForToday = JSON.parse(localStorage.getItem(`late_students_${today}`) || '[]');
-  
-  // Если студент уже в списке опоздавших, то считаем его опоздавшим
-  if (lateStudentsForToday.includes(studentId)) {
+  // Если студент уже в списке опоздавших
+  if (knownLateStudents.includes(studentId)) {
     return true;
   }
   
-  // Если время не задано или записи для студента нет, то не считаем опозданием
-  if (!startTime || !attendance[studentId]) return false;
+  // Если записи для студента нет
+  if (!attendance[studentId]) return false;
   
   const record = attendance[studentId][date];
   
-  // Если записи нет вообще, и студент не отмечен как опоздавший ранее
+  // Если записи нет вообще
   if (!record) return false;
   
-  // Если у студента есть причина отсутствия (б, н, п), то он не опоздал, а отсутствует по причине
+  // Если у студента есть причина отсутствия (б, н, п), то он не опоздал
   if (record.absence_reason) return false;
-  
-  // Если студент не отмечен присутствующим, значит опоздал
-  if (!record.is_present) {
-    // Добавляем студента в список опоздавших для сегодняшнего дня
-    if (!lateStudentsForToday.includes(studentId)) {
-      lateStudentsForToday.push(studentId);
-      localStorage.setItem(`late_students_${today}`, JSON.stringify(lateStudentsForToday));
-    }
-    return true;
-  }
   
   return false;
 };
