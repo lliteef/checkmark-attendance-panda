@@ -31,22 +31,37 @@ export const isLate = (
   attendance: Record<string, any>, 
   startTime: string | null
 ): boolean => {
+  // Проверяем, отмечен ли студент как опоздавший сегодня
+  const today = new Date().toISOString().split('T')[0];
+  const lateStudentsForToday = JSON.parse(localStorage.getItem(`late_students_${today}`) || '[]');
+  
+  // Если студент уже в списке опоздавших, то считаем его опоздавшим
+  if (lateStudentsForToday.includes(studentId)) {
+    return true;
+  }
+  
   // Если время не задано или записи для студента нет, то не считаем опозданием
   if (!startTime || !attendance[studentId]) return false;
   
   const record = attendance[studentId][date];
   
-  // Если записи нет вообще, то считаем студента отсутствующим
+  // Если записи нет вообще, и студент не отмечен как опоздавший ранее
   if (!record) return false;
-  
-  // Если студент отмечен присутствующим, то не опоздал
-  if (record.is_present) return false;
   
   // Если у студента есть причина отсутствия (б, н, п), то он не опоздал, а отсутствует по причине
   if (record.absence_reason) return false;
   
-  // В остальных случаях (не отмечен присутствующим и нет причины) - студент опоздал
-  return true;
+  // Если студент не отмечен присутствующим, значит опоздал
+  if (!record.is_present) {
+    // Добавляем студента в список опоздавших для сегодняшнего дня
+    if (!lateStudentsForToday.includes(studentId)) {
+      lateStudentsForToday.push(studentId);
+      localStorage.setItem(`late_students_${today}`, JSON.stringify(lateStudentsForToday));
+    }
+    return true;
+  }
+  
+  return false;
 };
 
 export const getDatesForView = (viewType: ViewType, selectedMonth: string): string[] => {
@@ -105,7 +120,7 @@ export const getLastTwelveMonths = () => {
   const months = [];
   const monthNames = [
     'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
-    'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+    'Ию��ь', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
   ];
 
   const today = new Date();

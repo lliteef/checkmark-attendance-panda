@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -190,7 +189,11 @@ const AttendanceTable = () => {
           </div>
         </div>
 
-        {viewType === "day" && <LessonTimeSelector onTimeSelected={handleTimeSelected} />}
+        {viewType === "day" && <LessonTimeSelector 
+          onTimeSelected={handleTimeSelected} 
+          students={students}
+          attendance={attendance}
+        />}
 
         {isCurrentDateWeekend && viewType === 'day' ? (
           <Card>

@@ -9,9 +9,11 @@ import { getDefaultLessonStartTime } from "@/utils/attendanceUtils";
 
 interface LessonTimeSelectorProps {
   onTimeSelected: (time: string) => void;
+  students: Array<{ id: string; name: string; }>;
+  attendance: Record<string, any>;
 }
 
-const LessonTimeSelector: React.FC<LessonTimeSelectorProps> = ({ onTimeSelected }) => {
+const LessonTimeSelector: React.FC<LessonTimeSelectorProps> = ({ onTimeSelected, students, attendance }) => {
   const [lessonTime, setLessonTime] = useState<string>(getDefaultLessonStartTime());
   const [isFirstTime, setIsFirstTime] = useState<boolean>(true);
 
@@ -35,6 +37,21 @@ const LessonTimeSelector: React.FC<LessonTimeSelectorProps> = ({ onTimeSelected 
     // Сохраняем выбранное время для текущего дня
     const today = new Date().toISOString().split('T')[0];
     localStorage.setItem(`lesson_start_time_${today}`, lessonTime);
+    
+    // При подтверждении времени начала занятий, отмечаем всех неотмеченных студентов как опоздавших
+    const lateStudents: string[] = [];
+    
+    students.forEach(student => {
+      const record = attendance[student.id]?.[today];
+      // Если студент не отмечен присутствующим и у него нет причины отсутствия,
+      // добавляем его в список опоздавших
+      if (!record?.is_present && !record?.absence_reason) {
+        lateStudents.push(student.id);
+      }
+    });
+    
+    // Сохраняем список опоздавших в localStorage
+    localStorage.setItem(`late_students_${today}`, JSON.stringify(lateStudents));
     
     onTimeSelected(lessonTime);
     setIsFirstTime(false);
