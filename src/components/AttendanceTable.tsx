@@ -40,10 +40,10 @@ const AttendanceTable = () => {
       try {
         const today = dates[0];
         
-        const { data, error } = await (supabase
-          .from('late_students' as any)
+        const { data, error } = await supabase
+          .from('late_students')
           .select('student_id')
-          .eq('date', today) as any);
+          .eq('date', today) as any;
         
         if (error) throw error;
         
@@ -115,10 +115,10 @@ const AttendanceTable = () => {
         (payload) => {
           const fetchLatestLateStudents = async () => {
             try {
-              const { data, error } = await (supabase
-                .from('late_students' as any)
+              const { data, error } = await supabase
+                .from('late_students')
                 .select('student_id')
-                .eq('date', today) as any);
+                .eq('date', today) as any;
               
               if (error) throw error;
               

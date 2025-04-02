@@ -1,3 +1,4 @@
+
 import * as XLSX from 'xlsx';
 import { supabase } from "@/integrations/supabase/client";
 
@@ -32,14 +33,16 @@ export const isLate = async (
   attendance: Record<string, any>
 ): Promise<boolean> => {
   try {
+    // Упрощаем код, используя однократное приведение типов
+    type LateStudentRecord = { id: string };
+    
     // Проверяем, отмечен ли студент как опоздавший в базе данных
-    // Используем as any для обхода проблемы с типами
-    const { data: lateData, error: lateError } = await (supabase
-      .from('late_students' as any)
+    const { data: lateData, error: lateError } = await supabase
+      .from('late_students')
       .select('id')
       .eq('student_id', studentId)
       .eq('date', date)
-      .maybeSingle() as any);
+      .maybeSingle() as any;
     
     if (lateError) throw lateError;
     

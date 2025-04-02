@@ -25,12 +25,11 @@ const LessonTimeSelector: React.FC<LessonTimeSelectorProps> = ({ onTimeSelected,
       try {
         const today = new Date().toISOString().split('T')[0];
         
-        // Используем as any для обхода проблемы с типами
-        const { data, error } = await (supabase
-          .from('lesson_times' as any)
+        const { data, error } = await supabase
+          .from('lesson_times')
           .select('start_time')
           .eq('date', today)
-          .maybeSingle() as any);
+          .maybeSingle() as any;
         
         if (error) throw error;
         
@@ -58,14 +57,14 @@ const LessonTimeSelector: React.FC<LessonTimeSelectorProps> = ({ onTimeSelected,
       const today = new Date().toISOString().split('T')[0];
       
       // Сохраняем выбранное время для текущего дня в базе данных
-      const { error: timeError } = await (supabase
-        .from('lesson_times' as any)
+      const { error: timeError } = await supabase
+        .from('lesson_times')
         .upsert({ 
           date: today, 
           start_time: lessonTime 
         }, { 
           onConflict: 'date' 
-        }) as any);
+        }) as any;
       
       if (timeError) throw timeError;
       
@@ -86,11 +85,11 @@ const LessonTimeSelector: React.FC<LessonTimeSelectorProps> = ({ onTimeSelected,
       
       // Сохраняем список опоздавших в базе данных
       if (lateStudentRows.length > 0) {
-        const { error: lateError } = await (supabase
-          .from('late_students' as any)
+        const { error: lateError } = await supabase
+          .from('late_students')
           .upsert(lateStudentRows, { 
             onConflict: 'student_id,date' 
-          }) as any);
+          }) as any;
         
         if (lateError) throw lateError;
       }
