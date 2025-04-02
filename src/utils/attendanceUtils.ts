@@ -1,4 +1,3 @@
-
 import * as XLSX from 'xlsx';
 
 export type ViewType = "day" | "week" | "month";
@@ -32,18 +31,22 @@ export const isLate = (
   attendance: Record<string, any>, 
   startTime: string | null
 ): boolean => {
-  // Если время не задано или студент отмечен отсутствующим с причиной, то не считаем опозданием
+  // Если время не задано или записи для студента нет, то не считаем опозданием
   if (!startTime || !attendance[studentId]) return false;
   
   const record = attendance[studentId][date];
   
-  // Если студент не отмечен вообще или отмечен отсутствующим с причиной
-  if (!record || (record.absence_reason && !record.is_present)) {
-    return false;
-  }
+  // Если записи нет вообще, то считаем студента отсутствующим
+  if (!record) return false;
   
-  // Если студент не отмечен присутствующим и нет причины отсутствия
-  return !record.is_present && !record.absence_reason;
+  // Если студент отмечен присутствующим, то не опоздал
+  if (record.is_present) return false;
+  
+  // Если у студента есть причина отсутствия (б, н, п), то он не опоздал, а отсутствует по причине
+  if (record.absence_reason) return false;
+  
+  // В остальных случаях (не отмечен присутствующим и нет причины) - студент опоздал
+  return true;
 };
 
 export const getDatesForView = (viewType: ViewType, selectedMonth: string): string[] => {
