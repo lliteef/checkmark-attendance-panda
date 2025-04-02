@@ -25,11 +25,12 @@ const LessonTimeSelector: React.FC<LessonTimeSelectorProps> = ({ onTimeSelected,
       try {
         const today = new Date().toISOString().split('T')[0];
         
-        const { data, error } = await supabase
-          .from('lesson_times')
+        // Используем as any для обхода проблемы с типами
+        const { data, error } = await (supabase
+          .from('lesson_times' as any)
           .select('start_time')
           .eq('date', today)
-          .maybeSingle();
+          .maybeSingle() as any);
         
         if (error) throw error;
         
@@ -57,19 +58,19 @@ const LessonTimeSelector: React.FC<LessonTimeSelectorProps> = ({ onTimeSelected,
       const today = new Date().toISOString().split('T')[0];
       
       // Сохраняем выбранное время для текущего дня в базе данных
-      const { error: timeError } = await supabase
-        .from('lesson_times')
+      const { error: timeError } = await (supabase
+        .from('lesson_times' as any)
         .upsert({ 
           date: today, 
           start_time: lessonTime 
         }, { 
           onConflict: 'date' 
-        });
+        }) as any);
       
       if (timeError) throw timeError;
       
       // При подтверждении времени начала занятий, отмечаем всех неотмеченных студентов как опоздавших
-      const lateStudentRows = [];
+      const lateStudentRows: any[] = [];
       
       students.forEach(student => {
         const record = attendance[student.id]?.[today];
@@ -85,11 +86,11 @@ const LessonTimeSelector: React.FC<LessonTimeSelectorProps> = ({ onTimeSelected,
       
       // Сохраняем список опоздавших в базе данных
       if (lateStudentRows.length > 0) {
-        const { error: lateError } = await supabase
-          .from('late_students')
+        const { error: lateError } = await (supabase
+          .from('late_students' as any)
           .upsert(lateStudentRows, { 
             onConflict: 'student_id,date' 
-          });
+          }) as any);
         
         if (lateError) throw lateError;
       }

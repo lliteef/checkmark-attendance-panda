@@ -1,4 +1,3 @@
-
 import * as XLSX from 'xlsx';
 import { supabase } from "@/integrations/supabase/client";
 
@@ -30,17 +29,17 @@ export const getDefaultLessonStartTime = (): string => {
 export const isLate = async (
   studentId: string, 
   date: string, 
-  attendance: Record<string, any>, 
-  startTime: string | null
+  attendance: Record<string, any>
 ): Promise<boolean> => {
   try {
     // Проверяем, отмечен ли студент как опоздавший в базе данных
-    const { data: lateData, error: lateError } = await supabase
-      .from('late_students')
+    // Используем as any для обхода проблемы с типами
+    const { data: lateData, error: lateError } = await (supabase
+      .from('late_students' as any)
       .select('id')
       .eq('student_id', studentId)
       .eq('date', date)
-      .maybeSingle();
+      .maybeSingle() as any);
     
     if (lateError) throw lateError;
     
@@ -49,21 +48,16 @@ export const isLate = async (
       return true;
     }
     
-    // Если время не задано или записи для студента нет, то не считаем опозданием
-    if (!startTime || !attendance[studentId]) return false;
+    // Если записи для студента нет, то не считаем опозданием
+    if (!attendance[studentId]) return false;
     
     const record = attendance[studentId][date];
     
-    // Если записи нет вообще, и студент не отмечен как опоздавший ранее
+    // Если записи нет вообще
     if (!record) return false;
     
     // Если у студента есть причина отсутствия (б, н, п), то он не опоздал, а отсутствует по причине
     if (record.absence_reason) return false;
-    
-    // Если студент не отмечен присутствующим, значит опоздал
-    if (!record.is_present) {
-      return true;
-    }
     
     return false;
   } catch (error) {
@@ -155,7 +149,7 @@ export const getLastTwelveMonths = () => {
   const months = [];
   const monthNames = [
     'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
-    'Ию��ь', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+    'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
   ];
 
   const today = new Date();

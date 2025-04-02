@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -41,14 +40,14 @@ const AttendanceTable = () => {
       try {
         const today = dates[0];
         
-        const { data, error } = await supabase
-          .from('late_students')
+        const { data, error } = await (supabase
+          .from('late_students' as any)
           .select('student_id')
-          .eq('date', today);
+          .eq('date', today) as any);
         
         if (error) throw error;
         
-        const lateIds = data.map(item => item.student_id);
+        const lateIds = data.map((item: any) => item.student_id);
         setLateStudentIds(lateIds);
       } catch (error) {
         console.error('Ошибка при загрузке списка опоздавших:', error);
@@ -114,17 +113,16 @@ const AttendanceTable = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'late_students', filter: `date=eq.${today}` },
         (payload) => {
-          // Обновляем список опоздавших при изменениях в базе данных
           const fetchLatestLateStudents = async () => {
             try {
-              const { data, error } = await supabase
-                .from('late_students')
+              const { data, error } = await (supabase
+                .from('late_students' as any)
                 .select('student_id')
-                .eq('date', today);
+                .eq('date', today) as any);
               
               if (error) throw error;
               
-              const lateIds = data.map(item => item.student_id);
+              const lateIds = data.map((item: any) => item.student_id);
               setLateStudentIds(lateIds);
             } catch (error) {
               console.error('Ошибка при загрузке обновленного списка опоздавших:', error);
