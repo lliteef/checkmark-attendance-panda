@@ -37,9 +37,6 @@ const LessonTimeSelector: React.FC<LessonTimeSelectorProps> = ({ onTimeSelected,
           setLessonTime(data.start_time);
           setIsFirstTime(false);
           onTimeSelected(data.start_time);
-        } else {
-          setIsFirstTime(true);
-          setLessonTime(getDefaultLessonStartTime());
         }
       } catch (error) {
         console.error('Ошибка при получении времени начала занятий:', error);
@@ -48,23 +45,6 @@ const LessonTimeSelector: React.FC<LessonTimeSelectorProps> = ({ onTimeSelected,
     };
     
     fetchLessonTime();
-    
-    // Подписываемся на изменения в таблице lesson_times
-    const lessonTimesChannel = supabase
-      .channel('lesson_times_reset')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'lesson_times' },
-        () => {
-          // При изменении данных перезагружаем информацию
-          fetchLessonTime();
-        }
-      )
-      .subscribe();
-      
-    return () => {
-      supabase.removeChannel(lessonTimesChannel);
-    };
   }, [onTimeSelected]);
 
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
