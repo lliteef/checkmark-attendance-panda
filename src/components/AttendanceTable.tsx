@@ -154,7 +154,6 @@ const AttendanceTable = () => {
               lateStudentIds={lateStudentIds}
               attendance={attendance}
               currentDate={dates[0]}
-              onAbsenceReasonChange={handleAbsenceReasonChange}
             />
             
             <MissingStudentsView 
