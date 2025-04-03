@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
   ViewType, getDatesForView, exportToExcel, isLateSync 
@@ -10,6 +11,9 @@ import AttendanceFilters from './attendance/AttendanceFilters';
 import AttendanceTableView from './attendance/AttendanceTableView';
 import LateStudentsView from './attendance/LateStudentsView';
 import MissingStudentsView from './attendance/MissingStudentsView';
+import { Button } from "./ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
+import { RefreshCcw } from "lucide-react";
 
 const AttendanceTable = () => {
   const { students, attendance, updateAttendance, updateAbsenceReason } = useAttendanceSync();
@@ -20,6 +24,7 @@ const AttendanceTable = () => {
   });
   const [lessonStartTime, setLessonStartTime] = useState<string | null>(null);
   const [lateStudentIds, setLateStudentIds] = useState<string[]>([]);
+  const [isResetting, setIsResetting] = useState(false);
 
   const dates = getDatesForView(viewType, selectedMonth);
 
@@ -66,6 +71,45 @@ const AttendanceTable = () => {
 
   const handleTimeSelected = (time: string) => {
     setLessonStartTime(time);
+  };
+
+  const resetCurrentDay = async () => {
+    if (dates.length === 0) return;
+    
+    setIsResetting(true);
+    
+    try {
+      const today = dates[0];
+      
+      // 1. Удаляем время начала занятий
+      await supabase
+        .from('lesson_times')
+        .delete()
+        .eq('date', today);
+      
+      // 2. Удаляем записи о посещаемости
+      await supabase
+        .from('attendance_records')
+        .delete()
+        .eq('date', today);
+        
+      // 3. Удаляем записи об опоздавших
+      await supabase
+        .from('late_students')
+        .delete()
+        .eq('date', today);
+      
+      toast.success('Данные текущего дня сброшены');
+      
+      // Сбрасываем состояние компонента
+      setLessonStartTime(null);
+      setLateStudentIds([]);
+    } catch (error) {
+      console.error('Ошибка при сбросе данных:', error);
+      toast.error('Ошибка при сбросе данных дня');
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   const missingStudents = useMemo(() => {
@@ -124,14 +168,50 @@ const AttendanceTable = () => {
   return (
     <div className="w-full">
       <div className="min-w-[320px]">
-        <AttendanceFilters 
-          viewType={viewType}
-          selectedMonth={selectedMonth}
-          onViewTypeChange={setViewType}
-          onSelectedMonthChange={setSelectedMonth}
-          onExport={handleExport}
-          students={students}
-        />
+        <div className="flex justify-between items-center mb-4">
+          <AttendanceFilters 
+            viewType={viewType}
+            selectedMonth={selectedMonth}
+            onViewTypeChange={setViewType}
+            onSelectedMonthChange={setSelectedMonth}
+            onExport={handleExport}
+            students={students}
+          />
+          
+          {viewType === "day" && dates.length > 0 && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  className="ml-2 border-red-200 hover:bg-red-50 hover:text-red-600 text-red-500"
+                  disabled={isResetting}
+                >
+                  <RefreshCcw className="h-4 w-4 mr-2" />
+                  Сбросить день
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Сбросить данные текущего дня?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Это действие удалит все данные о посещаемости, причинах отсутствия, 
+                    времени начала занятий и список опоздавших за текущий день. 
+                    Данное действие невозможно отменить.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Отмена</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={resetCurrentDay}
+                    className="bg-red-500 hover:bg-red-600"
+                  >
+                    Сбросить
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </div>
 
         {viewType === "day" && <LessonTimeSelector 
           onTimeSelected={handleTimeSelected} 
