@@ -68,30 +68,39 @@ const LessonTimeSelector: React.FC<LessonTimeSelectorProps> = ({ onTimeSelected,
       
       if (timeError) throw timeError;
       
-      // При подтверждении времени начала занятий, отмечаем всех неотмеченных студентов как опоздавших
+      // Проверяем, прошло ли уже время начала занятий
+      const currentTime = new Date();
+      const [hours, minutes] = lessonTime.split(':').map(Number);
+      const lessonDateTime = new Date();
+      lessonDateTime.setHours(hours, minutes, 0, 0);
+      
+      // При подтверждении времени начала занятий отмечаем студентов как опоздавших 
+      // ТОЛЬКО если текущее время уже больше времени начала занятий
       const lateStudentRows: any[] = [];
       
-      students.forEach(student => {
-        const record = attendance[student.id]?.[today];
-        // Если студент не отмечен присутствующим и у него нет причины отсутствия,
-        // добавляем его в список опоздавших
-        if (!record?.is_present && !record?.absence_reason) {
-          lateStudentRows.push({
-            student_id: student.id,
-            date: today
-          });
-        }
-      });
-      
-      // Сохраняем список опоздавших в базе данных
-      if (lateStudentRows.length > 0) {
-        const { error: lateError } = await supabase
-          .from('late_students')
-          .upsert(lateStudentRows, { 
-            onConflict: 'student_id,date' 
-          }) as any;
+      if (currentTime > lessonDateTime) {
+        students.forEach(student => {
+          const record = attendance[student.id]?.[today];
+          // Если студент не отмечен присутствующим и у него нет причины отсутствия,
+          // добавляем его в список опоздавших
+          if (!record?.is_present && !record?.absence_reason) {
+            lateStudentRows.push({
+              student_id: student.id,
+              date: today
+            });
+          }
+        });
         
-        if (lateError) throw lateError;
+        // Сохраняем список опоздавших в базе данных
+        if (lateStudentRows.length > 0) {
+          const { error: lateError } = await supabase
+            .from('late_students')
+            .upsert(lateStudentRows, { 
+              onConflict: 'student_id,date' 
+            }) as any;
+          
+          if (lateError) throw lateError;
+        }
       }
       
       onTimeSelected(lessonTime);
