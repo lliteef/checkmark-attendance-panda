@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
   ViewType, getDatesForView, exportToExcel, isLateSync 
@@ -14,6 +13,7 @@ import MissingStudentsView from './attendance/MissingStudentsView';
 import { Button } from "./ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./ui/alert-dialog";
 import { RefreshCcw } from "lucide-react";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const AttendanceTable = () => {
   const { students, attendance, updateAttendance, updateAbsenceReason } = useAttendanceSync();
@@ -25,6 +25,7 @@ const AttendanceTable = () => {
   const [lessonStartTime, setLessonStartTime] = useState<string | null>(null);
   const [lateStudentIds, setLateStudentIds] = useState<string[]>([]);
   const [isResetting, setIsResetting] = useState(false);
+  const isMobile = useIsMobile();
 
   const dates = getDatesForView(viewType, selectedMonth);
 
@@ -81,19 +82,16 @@ const AttendanceTable = () => {
     try {
       const today = dates[0];
       
-      // 1. Удаляем время начала занятий
       await supabase
         .from('lesson_times')
         .delete()
         .eq('date', today);
       
-      // 2. Удаляем записи о посещаемости
       await supabase
         .from('attendance_records')
         .delete()
         .eq('date', today);
         
-      // 3. Удаляем записи об опоздавших
       await supabase
         .from('late_students')
         .delete()
@@ -101,7 +99,6 @@ const AttendanceTable = () => {
       
       toast.success('Данные текущего дня сброшены');
       
-      // Сбрасываем состояние компонента
       setLessonStartTime(null);
       setLateStudentIds([]);
     } catch (error) {
@@ -186,8 +183,8 @@ const AttendanceTable = () => {
                   className="ml-2 border-red-200 hover:bg-red-50 hover:text-red-600 text-red-500"
                   disabled={isResetting}
                 >
-                  <RefreshCcw className="h-4 w-4 mr-2" />
-                  Сбросить день
+                  <RefreshCcw className="h-4 w-4" />
+                  {!isMobile && <span className="ml-2">Сбросить день</span>}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
