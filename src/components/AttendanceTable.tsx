@@ -3,18 +3,19 @@ import React, { useState, useMemo } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { ViewType, getDatesForView, getLastTwelveMonths, exportToExcel, getDayOfWeekName, isWeekend } from "@/utils/attendanceUtils";
+import { ViewType, getDatesForView, getLastTwelveMonths, exportToExcel, getDayOfWeekName, isWeekend, getCurrentMonthStartDate } from "@/utils/attendanceUtils";
 import { useAttendanceSync } from '@/hooks/useAttendanceSync';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { CalendarCog, CalendarPlus, Users } from "lucide-react";
+import { CalendarCog, CalendarPlus, Users, RotateCcw, Trash } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Calendar } from "@/components/ui/calendar";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import StudentManagement from './StudentManagement';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const AttendanceTable = () => {
-  const { students, attendance, updateAttendance, updateAbsenceReason } = useAttendanceSync();
+  const { students, attendance, updateAttendance, updateAbsenceReason, manualCleanupOldData } = useAttendanceSync();
   const [viewType, setViewType] = useState<ViewType>("day");
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const today = new Date();
@@ -61,6 +62,13 @@ const AttendanceTable = () => {
     }
   };
 
+  const handleCleanupOldData = async () => {
+    const success = await manualCleanupOldData();
+    if (success) {
+      toast.success('Старые данные успешно очищены');
+    }
+  };
+
   const missingStudents = useMemo(() => {
     if (viewType !== 'day' || dates.length === 0) return [];
     
@@ -70,6 +78,15 @@ const AttendanceTable = () => {
 
   const currentDate = dates[0];
   const isCurrentDateWeekend = currentDate && isWeekend(new Date(currentDate));
+
+  const currentMonthStartFormatted = useMemo(() => {
+    const currentMonthStart = getCurrentMonthStartDate();
+    const date = new Date(currentMonthStart);
+    return date.toLocaleDateString('ru-RU', {
+      month: 'long',
+      year: 'numeric'
+    });
+  }, []);
 
   return (
     <div className="w-full">
@@ -178,6 +195,39 @@ const AttendanceTable = () => {
                 <Button className="flex-1 sm:flex-none" variant="outline" onClick={handleExport}>
                   Экспорт
                 </Button>
+                
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    {isMobile ? (
+                      <Button variant="outline" className="aspect-square">
+                        <Trash className="h-4 w-4 text-red-500" />
+                      </Button>
+                    ) : (
+                      <Button variant="outline" className="gap-2">
+                        <Trash className="h-4 w-4 text-red-500" />
+                        Очистить старые данные
+                      </Button>
+                    )}
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Очистить старые данные?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Это действие удалит все данные до {currentMonthStartFormatted}.
+                        Эта операция не может быть отменена.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Отмена</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={handleCleanupOldData}
+                        className="bg-red-500 hover:bg-red-600"
+                      >
+                        Очистить
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             )}
           </div>

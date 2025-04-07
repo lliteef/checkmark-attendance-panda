@@ -1,3 +1,4 @@
+
 import * as XLSX from 'xlsx';
 
 export type ViewType = "day" | "week" | "month";
@@ -127,4 +128,32 @@ export const exportToExcel = (students: any[], dates: string[], attendance: any)
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Посещаемость');
   
   XLSX.writeFile(workbook, 'посещаемость.xlsx');
+};
+
+// Новые функции для очистки старых данных
+export const getCurrentMonthStartDate = (): string => {
+  const now = new Date();
+  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  return firstDayOfMonth.toISOString().split('T')[0];
+};
+
+export const getPreviousMonthStartDate = (): string => {
+  const now = new Date();
+  const firstDayOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  return firstDayOfPrevMonth.toISOString().split('T')[0];
+};
+
+export const checkIfShouldCleanupOldData = (): boolean => {
+  const now = new Date();
+  // Проверяем, 5-е число ли сегодня
+  return now.getDate() === 5;
+};
+
+export const formatDateForDisplay = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('ru-RU', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
 };

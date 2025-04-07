@@ -1,6 +1,8 @@
+
 import { useEffect, useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { getPreviousMonthStartDate, getCurrentMonthStartDate, checkIfShouldCleanupOldData } from '@/utils/attendanceUtils';
 
 export interface Student {
   id: string;
@@ -38,9 +40,13 @@ export const useAttendanceSync = () => {
         }));
         setStudents(transformedStudents);
 
+        // Ограничиваем запрос только данными за текущий месяц
+        const currentMonthStart = getCurrentMonthStartDate();
+        
         const { data: attendanceData, error: attendanceError } = await supabase
           .from('attendance_records')
-          .select('*');
+          .select('*')
+          .gte('date', currentMonthStart);
 
         if (attendanceError) throw attendanceError;
 
@@ -55,6 +61,11 @@ export const useAttendanceSync = () => {
           };
         });
         setAttendance(attendanceMap);
+        
+        // Проверяем, нужно ли очистить старые данные
+        if (checkIfShouldCleanupOldData()) {
+          cleanupOldAttendanceData();
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
         toast.error('Ошибка при загрузке данных');
@@ -99,9 +110,14 @@ export const useAttendanceSync = () => {
         { event: '*', schema: 'public', table: 'attendance_records' },
         (payload) => {
           console.log('Attendance change received:', payload);
+          
+          // При получении обновлений, загружаем только данные за текущий месяц
+          const currentMonthStart = getCurrentMonthStartDate();
+          
           supabase
             .from('attendance_records')
             .select('*')
+            .gte('date', currentMonthStart)
             .then(({ data, error }) => {
               if (error) {
                 console.error('Error refreshing attendance:', error);
@@ -203,12 +219,94 @@ export const useAttendanceSync = () => {
     }
   };
 
+  // Новая функция для очистки данных предыдущего месяца
+  const cleanupOldAttendanceData = async () => {
+    try {
+      const previousMonthStart = getPreviousMonthStartDate();
+      const currentMonthStart = getCurrentMonthStartDate();
+      
+      // Удаляем все записи о посещаемости за предыдущий месяц
+      const { error: attendanceError } = await supabase
+        .from('attendance_records')
+        .delete()
+        .lt('date', currentMonthStart);
+
+      if (attendanceError) throw attendanceError;
+
+      // Удаляем все записи о опоздавших за предыдущий месяц
+      const { error: lateError } = await supabase
+        .from('late_students')
+        .delete()
+        .lt('date', currentMonthStart);
+
+      if (lateError) throw lateError;
+
+      // Удаляем все записи о времени занятия за предыдущий месяц
+      const { error: lessonTimeError } = await supabase
+        .from('lesson_times')
+        .delete()
+        .lt('date', currentMonthStart);
+
+      if (lessonTimeError) throw lessonTimeError;
+
+      toast.success(`Данные до ${formatDateForDisplay(currentMonthStart)} успешно очищены`);
+    } catch (error) {
+      console.error('Error cleaning up old data:', error);
+      toast.error('Ошибка при очистке старых данных');
+    }
+  };
+
+  // Функция для ручной очистки данных
+  const manualCleanupOldData = async () => {
+    try {
+      await cleanupOldAttendanceData();
+      // Обновляем состояние после очистки
+      const currentMonthStart = getCurrentMonthStartDate();
+      
+      const { data, error } = await supabase
+        .from('attendance_records')
+        .select('*')
+        .gte('date', currentMonthStart);
+
+      if (error) throw error;
+
+      const attendanceMap: AttendanceRecord = {};
+      data.forEach((record) => {
+        if (!attendanceMap[record.student_id]) {
+          attendanceMap[record.student_id] = {};
+        }
+        attendanceMap[record.student_id][record.date] = {
+          is_present: record.is_present || false,
+          absence_reason: record.absence_reason
+        };
+      });
+      setAttendance(attendanceMap);
+      
+      return true;
+    } catch (error) {
+      console.error('Error in manual cleanup:', error);
+      toast.error('Ошибка при очистке данных');
+      return false;
+    }
+  };
+
   return {
     students,
     attendance,
     addStudent,
     removeStudent,
     updateAttendance,
-    updateAbsenceReason
+    updateAbsenceReason,
+    manualCleanupOldData
   };
+};
+
+// Вспомогательная функция для форматирования даты
+const formatDateForDisplay = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
 };
