@@ -234,16 +234,18 @@ export const useAttendanceSync = () => {
       if (attendanceError) throw attendanceError;
 
       // Удаляем все записи о опоздавших за предыдущий месяц
-      const { error: lateError } = await supabase
-        .from('late_students')
+      // Using type assertion to bypass TypeScript error
+      const { error: lateError } = await (supabase
+        .from('late_students') as any)
         .delete()
         .lt('date', currentMonthStart);
 
       if (lateError) throw lateError;
 
       // Удаляем все записи о времени занятия за предыдущий месяц
-      const { error: lessonTimeError } = await supabase
-        .from('lesson_times')
+      // Using type assertion to bypass TypeScript error
+      const { error: lessonTimeError } = await (supabase
+        .from('lesson_times') as any)
         .delete()
         .lt('date', currentMonthStart);
 
