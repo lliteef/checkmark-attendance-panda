@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -334,12 +333,11 @@ const AttendanceTable = () => {
                   </CardTitle>
                   <Button 
                     variant="outline" 
-                    size="sm" 
+                    size="icon" 
                     onClick={handleCopyMissingStudents}
-                    className="gap-2"
+                    title="Копировать имена"
                   >
                     <Copy className="h-4 w-4" />
-                    Копировать имена
                   </Button>
                 </CardHeader>
                 <CardContent>
