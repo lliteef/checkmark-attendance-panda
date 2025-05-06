@@ -7,7 +7,7 @@ import { ViewType, getDatesForView, getLastTwelveMonths, exportToExcel, getDayOf
 import { useAttendanceSync } from '@/hooks/useAttendanceSync';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { CalendarCog, CalendarPlus, Users, RotateCcw, Trash } from "lucide-react";
+import { CalendarCog, CalendarPlus, Users, RotateCcw, Trash, Copy } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Calendar } from "@/components/ui/calendar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -75,6 +75,18 @@ const AttendanceTable = () => {
     const currentDate = dates[0];
     return students.filter(student => !attendance[student.id]?.[currentDate]?.is_present);
   }, [students, attendance, dates, viewType]);
+
+  const handleCopyMissingStudents = () => {
+    if (missingStudents.length === 0) {
+      toast.info('Нет отсутствующих студентов для копирования');
+      return;
+    }
+    
+    const namesText = missingStudents.map(student => student.name).join('\n');
+    navigator.clipboard.writeText(namesText)
+      .then(() => toast.success('Имена отсутствующих студентов скопированы в буфер обмена'))
+      .catch(() => toast.error('Ошибка при копировании'));
+  };
 
   const currentDate = dates[0];
   const isCurrentDateWeekend = currentDate && isWeekend(new Date(currentDate));
@@ -316,10 +328,19 @@ const AttendanceTable = () => {
 
             {viewType === 'day' && missingStudents.length > 0 && (
               <Card className="mt-6">
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-lg font-semibold text-red-600">
                     Отсутствующие студенты ({missingStudents.length})
                   </CardTitle>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleCopyMissingStudents}
+                    className="gap-2"
+                  >
+                    <Copy className="h-4 w-4" />
+                    Копировать имена
+                  </Button>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
