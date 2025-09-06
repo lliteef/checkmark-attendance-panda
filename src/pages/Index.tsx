@@ -1,10 +1,12 @@
-import AttendanceTable from "@/components/AttendanceTable";
+import Schedule from "@/components/Schedule";
+import Navigation from "@/components/Navigation";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4">
-        <AttendanceTable />
+        <Navigation />
+        <Schedule />
       </div>
     </div>
   );
