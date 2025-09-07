@@ -47,29 +47,39 @@ const Schedule = () => {
 
       if (!groupData) return;
 
-      const { data: scheduleData } = await supabase
+      // Fetch schedule items and lessons separately, then combine them
+      const { data: scheduleItems } = await supabase
         .from('schedule_items')
-        .select(`
-          id,
-          day_of_week,
-          lesson_number,
-          week_type,
-          lesson:schedule_lessons(id, name, teacher, room)
-        `)
+        .select('id, day_of_week, lesson_number, week_type, lesson_id')
         .eq('group_id', groupData.id);
 
-      if (scheduleData) {
+      const { data: lessons } = await supabase
+        .from('schedule_lessons')
+        .select('id, name, teacher, room');
+
+      if (scheduleItems && lessons) {
+        // Create a lookup map for lessons
+        const lessonMap = new Map();
+        lessons.forEach(lesson => {
+          lessonMap.set(lesson.id, lesson);
+        });
+
+        // Combine schedule items with lesson details
         const groupedSchedule: DaySchedule = {};
-        scheduleData.forEach((item: any) => {
+        scheduleItems.forEach((item: any) => {
           if (!groupedSchedule[item.day_of_week]) {
             groupedSchedule[item.day_of_week] = [];
           }
-          groupedSchedule[item.day_of_week].push({
-            id: item.id,
-            lesson_number: item.lesson_number,
-            week_type: item.week_type,
-            lesson: item.lesson
-          });
+          
+          const lesson = lessonMap.get(item.lesson_id);
+          if (lesson) {
+            groupedSchedule[item.day_of_week].push({
+              id: item.id,
+              lesson_number: item.lesson_number,
+              week_type: item.week_type,
+              lesson: lesson
+            });
+          }
         });
 
         // Sort lessons by lesson_number

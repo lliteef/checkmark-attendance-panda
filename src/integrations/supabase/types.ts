@@ -47,6 +47,13 @@ export type Database = {
             referencedRelation: "students"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_attendance_records_student_id"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
         ]
       }
       late_students: {
@@ -69,6 +76,13 @@ export type Database = {
           student_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_late_students_student_id"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "late_students_student_id_fkey"
             columns: ["student_id"]
@@ -145,7 +159,22 @@ export type Database = {
           lesson_number?: number
           week_type?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_schedule_items_group_id"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "schedule_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_schedule_items_lesson_id"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "schedule_lessons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       schedule_lessons: {
         Row: {
