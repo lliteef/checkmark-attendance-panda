@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Users, Calendar, Trash2, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import StudentManagement from "@/components/StudentManagement";
+import ScheduleManagement from "@/components/ScheduleManagement";
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("students");
@@ -71,19 +72,7 @@ const Admin = () => {
               </TabsContent>
 
               <TabsContent value="schedule" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Управление расписанием</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-4">
-                      Здесь будет интерфейс для редактирования расписания
-                    </p>
-                    <Button disabled>
-                      Функция в разработке
-                    </Button>
-                  </CardContent>
-                </Card>
+                <ScheduleManagement />
               </TabsContent>
 
               <TabsContent value="calendar" className="mt-6">
