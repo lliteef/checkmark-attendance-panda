@@ -56,6 +56,45 @@ export type Database = {
           },
         ]
       }
+      internships: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          hours: number
+          id: string
+          location: string | null
+          name: string
+          notes: string | null
+          start_date: string | null
+          supervisor: string | null
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          hours: number
+          id?: string
+          location?: string | null
+          name: string
+          notes?: string | null
+          start_date?: string | null
+          supervisor?: string | null
+          type: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          hours?: number
+          id?: string
+          location?: string | null
+          name?: string
+          notes?: string | null
+          start_date?: string | null
+          supervisor?: string | null
+          type?: string
+        }
+        Relationships: []
+      }
       late_students: {
         Row: {
           created_at: string | null
@@ -197,6 +236,42 @@ export type Database = {
           name?: string
           room?: string
           teacher?: string
+        }
+        Relationships: []
+      }
+      session_items: {
+        Row: {
+          created_at: string
+          date: string | null
+          form_type: string
+          id: string
+          notes: string | null
+          room: string | null
+          subject_name: string
+          teacher: string
+          time: string | null
+        }
+        Insert: {
+          created_at?: string
+          date?: string | null
+          form_type: string
+          id?: string
+          notes?: string | null
+          room?: string | null
+          subject_name: string
+          teacher: string
+          time?: string | null
+        }
+        Update: {
+          created_at?: string
+          date?: string | null
+          form_type?: string
+          id?: string
+          notes?: string | null
+          room?: string | null
+          subject_name?: string
+          teacher?: string
+          time?: string | null
         }
         Relationships: []
       }

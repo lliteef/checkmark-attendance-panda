@@ -1,4 +1,4 @@
-import Schedule from "@/components/Schedule";
+import SessionSchedule from "@/components/SessionSchedule";
 import Navigation from "@/components/Navigation";
 
 const Index = () => {
@@ -6,7 +6,7 @@ const Index = () => {
     <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4">
         <Navigation />
-        <Schedule />
+        <SessionSchedule />
       </div>
     </div>
   );

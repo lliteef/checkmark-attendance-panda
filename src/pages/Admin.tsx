@@ -2,19 +2,31 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Users, Calendar, Trash2, BookOpen } from "lucide-react";
+import { Users, Calendar, Trash2, FileText, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 import StudentManagement from "@/components/StudentManagement";
-import ScheduleManagement from "@/components/ScheduleManagement";
+import SessionManagement from "@/components/SessionManagement";
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("students");
   const [students, setStudents] = useState<Array<{ id: string; name: string }>>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
+    checkAuth();
     fetchStudents();
   }, []);
+
+  const checkAuth = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      navigate('/auth');
+    }
+  };
 
   const fetchStudents = async () => {
     try {
@@ -33,14 +45,30 @@ const Admin = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({ title: "Выход выполнен успешно" });
+      navigate('/');
+    } catch (error) {
+      toast({ title: "Ошибка при выходе", variant: "destructive" });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl text-center">
-              Административная панель
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-2xl">
+                Административная панель
+              </CardTitle>
+              <Button variant="outline" onClick={handleLogout}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Выйти
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -49,9 +77,9 @@ const Admin = () => {
                   <Users className="h-4 w-4" />
                   Студенты
                 </TabsTrigger>
-                <TabsTrigger value="schedule" className="flex items-center gap-2">
-                  <BookOpen className="h-4 w-4" />
-                  Расписание
+                <TabsTrigger value="session" className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Сессия
                 </TabsTrigger>
                 <TabsTrigger value="calendar" className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
@@ -71,8 +99,8 @@ const Admin = () => {
                 )}
               </TabsContent>
 
-              <TabsContent value="schedule" className="mt-6">
-                <ScheduleManagement />
+              <TabsContent value="session" className="mt-6">
+                <SessionManagement />
               </TabsContent>
 
               <TabsContent value="calendar" className="mt-6">

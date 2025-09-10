@@ -5,9 +5,8 @@ import { Calendar, Users, Settings } from "lucide-react";
 
 const Navigation = () => {
   const navItems = [
-    { to: '/', icon: Calendar, label: 'Расписание' },
+    { to: '/', icon: Calendar, label: 'Сессия' },
     { to: '/attendance', icon: Users, label: 'Посещаемость' },
-    { to: '/admin', icon: Settings, label: 'Админ' },
   ];
 
   return (
