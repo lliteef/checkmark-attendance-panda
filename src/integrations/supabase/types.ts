@@ -56,6 +56,70 @@ export type Database = {
           },
         ]
       }
+      duty_assignments: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          is_substitute: boolean
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          is_substitute?: boolean
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          is_substitute?: boolean
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "duty_assignments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      duty_queue: {
+        Row: {
+          created_at: string
+          id: string
+          pair_group: number
+          position: number
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          pair_group: number
+          position: number
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          pair_group?: number
+          position?: number
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "duty_queue_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: true
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       internships: {
         Row: {
           created_at: string

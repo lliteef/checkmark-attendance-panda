@@ -10,6 +10,7 @@ import StudentManagement from "@/components/StudentManagement";
 import SessionManagement from "@/components/SessionManagement";
 import AttendanceTable from "@/components/AttendanceTable";
 import ScheduleManagement from "@/components/ScheduleManagement";
+import DutyManagement from "@/components/DutyManagement";
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("students");
@@ -74,7 +75,7 @@ const Admin = () => {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="students" className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
                   Студенты
@@ -90,6 +91,10 @@ const Admin = () => {
                 <TabsTrigger value="schedule" className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
                   Расписание
+                </TabsTrigger>
+                <TabsTrigger value="duty" className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Дежурство
                 </TabsTrigger>
               </TabsList>
 
@@ -111,6 +116,10 @@ const Admin = () => {
 
               <TabsContent value="schedule" className="mt-6">
                 <ScheduleManagement />
+              </TabsContent>
+
+              <TabsContent value="duty" className="mt-6">
+                <DutyManagement />
               </TabsContent>
             </Tabs>
           </CardContent>
