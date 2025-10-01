@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Users, Calendar, Trash2, FileText, LogOut } from "lucide-react";
+import { Users, Calendar, ClipboardCheck, FileText, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import StudentManagement from "@/components/StudentManagement";
 import SessionManagement from "@/components/SessionManagement";
+import AttendanceTable from "@/components/AttendanceTable";
+import ScheduleManagement from "@/components/ScheduleManagement";
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("students");
@@ -81,13 +83,13 @@ const Admin = () => {
                   <FileText className="h-4 w-4" />
                   Сессия
                 </TabsTrigger>
-                <TabsTrigger value="calendar" className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Календарь
+                <TabsTrigger value="attendance" className="flex items-center gap-2">
+                  <ClipboardCheck className="h-4 w-4" />
+                  Посещаемость
                 </TabsTrigger>
-                <TabsTrigger value="cleanup" className="flex items-center gap-2">
-                  <Trash2 className="h-4 w-4" />
-                  Очистка
+                <TabsTrigger value="schedule" className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Расписание
                 </TabsTrigger>
               </TabsList>
 
@@ -103,36 +105,12 @@ const Admin = () => {
                 <SessionManagement />
               </TabsContent>
 
-              <TabsContent value="calendar" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Управление календарем</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-4">
-                      Здесь будет интерфейс для редактирования календаря занятий
-                    </p>
-                    <Button disabled>
-                      Функция в разработке
-                    </Button>
-                  </CardContent>
-                </Card>
+              <TabsContent value="attendance" className="mt-6">
+                <AttendanceTable />
               </TabsContent>
 
-              <TabsContent value="cleanup" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Очистка старых данных</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-4">
-                      Здесь будет функционал для очистки старых записей посещаемости
-                    </p>
-                    <Button disabled variant="destructive">
-                      Функция в разработке
-                    </Button>
-                  </CardContent>
-                </Card>
+              <TabsContent value="schedule" className="mt-6">
+                <ScheduleManagement />
               </TabsContent>
             </Tabs>
           </CardContent>
