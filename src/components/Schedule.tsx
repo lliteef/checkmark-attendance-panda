@@ -117,56 +117,48 @@ const Schedule = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-4">
-        <div className="container mx-auto">
-          <Card>
-            <CardContent className="p-8">
-              <div className="text-center">Загрузка расписания...</div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <Card className="max-w-6xl mx-auto">
+        <CardContent className="p-8">
+          <div className="text-center">Загрузка расписания...</div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="container mx-auto">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl text-center">
-              Расписание группы 0941
-            </CardTitle>
-            {isMobile && (
-              <div className="flex items-center justify-between mt-4">
-                <Button variant="outline" size="icon" onClick={handlePrevDay}>
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <div className="flex flex-col items-center gap-2">
-                  <h3 className="text-lg font-semibold">{dayNames[currentDay]}</h3>
-                  <Button variant="outline" size="sm" onClick={handleToday}>
-                    Сегодня
-                  </Button>
-                </div>
-                <Button variant="outline" size="icon" onClick={handleNextDay}>
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-          </CardHeader>
-          <CardContent>
-            {isMobile ? (
-              <ScheduleDay 
-                daySchedule={schedule[currentDay] || []} 
-                dayName={dayNames[currentDay]}
-              />
-            ) : (
-              <ScheduleWeek schedule={schedule} dayNames={dayNames} />
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    <Card className="max-w-6xl mx-auto">
+      <CardHeader>
+        <CardTitle className="text-2xl text-center">
+          Расписание группы 0941
+        </CardTitle>
+        {isMobile && (
+          <div className="flex items-center justify-between mt-4">
+            <Button variant="outline" size="icon" onClick={handlePrevDay}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <div className="flex flex-col items-center gap-2">
+              <h3 className="text-lg font-semibold">{dayNames[currentDay]}</h3>
+              <Button variant="outline" size="sm" onClick={handleToday}>
+                Сегодня
+              </Button>
+            </div>
+            <Button variant="outline" size="icon" onClick={handleNextDay}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+      </CardHeader>
+      <CardContent>
+        {isMobile ? (
+          <ScheduleDay 
+            daySchedule={schedule[currentDay] || []} 
+            dayName={dayNames[currentDay]}
+          />
+        ) : (
+          <ScheduleWeek schedule={schedule} dayNames={dayNames} />
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
