@@ -117,7 +117,7 @@ const Schedule = () => {
 
   if (loading) {
     return (
-      <Card className="max-w-6xl mx-auto">
+      <Card>
         <CardContent className="p-8">
           <div className="text-center">Загрузка расписания...</div>
         </CardContent>
@@ -126,7 +126,7 @@ const Schedule = () => {
   }
 
   return (
-    <Card className="max-w-6xl mx-auto">
+    <Card>
       <CardHeader>
         <CardTitle className="text-2xl text-center">
           Расписание группы 0941
