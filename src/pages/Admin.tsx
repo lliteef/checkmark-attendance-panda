@@ -6,6 +6,7 @@ import { Users, Calendar, ClipboardCheck, FileText, LogOut } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 import StudentManagement from "@/components/StudentManagement";
 import SessionManagement from "@/components/SessionManagement";
 import AttendanceTable from "@/components/AttendanceTable";
@@ -19,6 +20,7 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     checkAuth();
@@ -76,30 +78,30 @@ const Admin = () => {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-6">
+              <TabsList className="grid w-full grid-cols-6 overflow-x-auto">
                 <TabsTrigger value="students" className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  Студенты
+                  {!isMobile && "Студенты"}
                 </TabsTrigger>
                 <TabsTrigger value="session" className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
-                  Сессия
+                  {!isMobile && "Сессия"}
                 </TabsTrigger>
                 <TabsTrigger value="attendance" className="flex items-center gap-2">
                   <ClipboardCheck className="h-4 w-4" />
-                  Посещаемость
+                  {!isMobile && "Посещаемость"}
                 </TabsTrigger>
                 <TabsTrigger value="schedule" className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  Расписание
+                  {!isMobile && "Расписание"}
                 </TabsTrigger>
                 <TabsTrigger value="duty" className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  Дежурство
+                  {!isMobile && "Дежурство"}
                 </TabsTrigger>
                 <TabsTrigger value="documents" className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
-                  Документы
+                  {!isMobile && "Документы"}
                 </TabsTrigger>
               </TabsList>
 
