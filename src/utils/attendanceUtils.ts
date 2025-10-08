@@ -1,5 +1,5 @@
-
 import * as XLSX from 'xlsx';
+import { eachDayOfInterval, format, startOfMonth, endOfMonth } from 'date-fns';
 
 export type ViewType = "day" | "week" | "month";
 
@@ -50,14 +50,11 @@ export const getDatesForView = (viewType: ViewType, selectedMonth: string): stri
       return dates;
     }
     case "month": {
-      const dates = [];
-      const currentDate = new Date(year, month - 1, 1); // Start from the 1st day of the selected month
+      const startDate = startOfMonth(new Date(year, month - 1));
+      const endDate = endOfMonth(new Date(year, month - 1));
       
-      while (currentDate.getMonth() === month - 1) { // Continue until we reach the next month
-        dates.push(new Date(currentDate).toISOString().split('T')[0]);
-        currentDate.setDate(currentDate.getDate() + 1);
-      }
-      return dates;
+      return eachDayOfInterval({ start: startDate, end: endDate })
+        .map(date => format(date, 'yyyy-MM-dd'));
     }
     default:
       return [];
