@@ -6,10 +6,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4">
-        <Navigation />
         <div className="space-y-8 mt-8">
           <AttendanceView />
-          <SessionSchedule />
         </div>
       </div>
     </div>
