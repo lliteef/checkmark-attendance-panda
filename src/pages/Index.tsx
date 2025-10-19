@@ -1,7 +1,6 @@
 import SessionSchedule from "@/components/SessionSchedule";
 import Navigation from "@/components/Navigation";
-import Schedule from "@/components/Schedule";
-import DutyDisplay from "@/components/DutyDisplay";
+import AttendanceView from "@/components/AttendanceView";
 
 const Index = () => {
   return (
@@ -9,8 +8,7 @@ const Index = () => {
       <div className="container mx-auto px-4">
         <Navigation />
         <div className="space-y-8 mt-8">
-          <DutyDisplay />
-          <Schedule />
+          <AttendanceView />
           <SessionSchedule />
         </div>
       </div>
